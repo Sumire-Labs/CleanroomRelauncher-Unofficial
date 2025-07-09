@@ -620,8 +620,8 @@ public class RelauncherGUI extends JDialog {
 
         JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, 32768, 512); // 256MB to 32GB, default 512MB
         initialMemorySlider.setToolTipText("Initial memory allocation for the game (Xms)");
-        initialMemorySlider.setMajorTickSpacing(512);
-        initialMemorySlider.setMinorTickSpacing(256);
+        initialMemorySlider.setMajorTickSpacing(4096); // Increased spacing to 4GB
+        initialMemorySlider.setMinorTickSpacing(1024); // Adjusted minor spacing
         initialMemorySlider.setPaintTicks(true);
         initialMemorySlider.setPaintLabels(true);
         initialMemorySlider.setSnapToTicks(true);
