@@ -565,7 +565,7 @@ public class RelauncherGUI extends JDialog {
         JLabel maxMemoryTitle = new JLabel("Allocate Max Memory (MB):");
         maxMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JSlider maxMemorySlider = new JSlider(JSlider.HORIZONTAL, 1024, 16384, 2048);
+        JSlider maxMemorySlider = new JSlider(JSlider.HORIZONTAL, 1024, 32768, 2048);
         maxMemorySlider.setMajorTickSpacing(1024);
         maxMemorySlider.setMinorTickSpacing(512);
         maxMemorySlider.setPaintTicks(true);
@@ -584,7 +584,7 @@ public class RelauncherGUI extends JDialog {
         if (maxMemory != null && !maxMemory.isEmpty()) {
             try {
                 int initialValue = Integer.parseInt(maxMemory);
-                if (initialValue >= 1024 && initialValue <= 8192) {
+                if (initialValue >= 1024 && initialValue <= 32768) {
                     maxMemorySlider.setValue(initialValue);
                 }
             } catch (NumberFormatException ignored) {
