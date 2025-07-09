@@ -1,0 +1,41 @@
+// You may write any gradle buildscript component in this file
+// This file is automatically applied after build.gradle + dependencies.gradle is ran
+
+// If you wish to use the default helper methods, uncomment the line below
+// apply from: 'gradle/scripts/helpers.gradle'
+
+evaluationDependsOn ':mainWrapper'
+
+tasks.named('jar', Jar) {
+    archiveClassifier = 'thin'
+    dependsOn project(':mainWrapper').tasks.named('generateWrapperHash')
+    from {
+        project(':mainWrapper').layout.buildDirectory.dir('classes/java/main/com/cleanroommc/relauncher/')
+    }
+    manifest {
+        attributes(
+                'WrapperHash': project(':mainWrapper').layout.buildDirectory.file('hash.txt').get().asFile.text
+        )
+    }
+}
+
+tasks.named('reobfJar') {
+    inputJar.set(tasks.named('shadowJar').flatMap({ it.archiveFile }))
+}
+
+tasks.shadowJar {
+    dependsOn project(':mainWrapper').tasks.named('generateWrapperHash')
+
+    archiveClassifier = ''
+    configurations = [ project.configurations.shade ]
+
+    from {
+        project(':mainWrapper').layout.buildDirectory.dir('classes/java/main/com/cleanroommc/relauncher/')
+    }
+
+    relocate 'com.cleanroommc.javautils', 'com.cleanroommc.relauncher.shade.javautils'
+    relocate 'com.cleanroommc.platformutils', 'com.cleanroommc.relauncher.shade.platformutils'
+    relocate 'org.slf4j', 'com.cleanroommc.relauncher.shade.slf4j'
+
+    mergeServiceFiles()
+}
