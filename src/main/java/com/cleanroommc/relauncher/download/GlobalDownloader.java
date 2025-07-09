@@ -1,6 +1,11 @@
 package com.cleanroommc.relauncher.download;
 
 import com.cleanroommc.relauncher.CleanroomRelauncher;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -9,6 +14,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -20,6 +26,47 @@ public final class GlobalDownloader {
     public static final GlobalDownloader INSTANCE = new GlobalDownloader();
 
     private final List<ForkJoinTask> downloads = new ArrayList<>();
+
+    public static List<FugueRelease> fetchFugueReleases() {
+        CleanroomRelauncher.LOGGER.info("Fetching Fugue releases from GitHub...");
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url("https://api.github.com/repos/CleanroomMC/Fugue/releases")
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                CleanroomRelauncher.LOGGER.error("Failed to fetch Fugue releases: " + response.message());
+                return Collections.emptyList();
+            }
+
+            String json = response.body().string();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(json);
+
+            List<FugueRelease> releases = new ArrayList<>();
+            for (JsonNode releaseNode : rootNode) {
+                String tagName = releaseNode.get("tag_name").asText();
+                JsonNode assetsNode = releaseNode.get("assets");
+                if (assetsNode != null && assetsNode.isArray()) {
+                    for (JsonNode assetNode : assetsNode) {
+                        String assetName = assetNode.get("name").asText();
+                        if (assetName.endsWith(".jar")) {
+                            String downloadUrl = assetNode.get("browser_download_url").asText();
+                            releases.add(new FugueRelease(tagName, downloadUrl));
+                            break; // Assuming one JAR per release is sufficient
+                        }
+                    }
+                }
+            }
+            CleanroomRelauncher.LOGGER.info("Successfully fetched {} Fugue releases.", releases.size());
+            return releases;
+        } catch (IOException e) {
+            CleanroomRelauncher.LOGGER.error("Error fetching Fugue releases: " + e.getMessage(), e);
+            return Collections.emptyList();
+        }
+    }
+
 
     public void from(String source, File destination) {
         URI uri;

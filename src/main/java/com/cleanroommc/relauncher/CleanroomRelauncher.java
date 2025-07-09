@@ -4,6 +4,8 @@ import com.cleanroommc.javautils.JavaUtils;
 import com.cleanroommc.javautils.api.JavaVersion;
 import com.cleanroommc.relauncher.config.RelauncherConfiguration;
 import com.cleanroommc.relauncher.download.CleanroomRelease;
+import com.cleanroommc.relauncher.download.FugueRelease;
+import com.cleanroommc.relauncher.download.GlobalDownloader;
 import com.cleanroommc.relauncher.download.cache.CleanroomCache;
 import com.cleanroommc.relauncher.download.schema.Version;
 import com.cleanroommc.relauncher.gui.RelauncherGUI;
@@ -31,6 +33,8 @@ public class CleanroomRelauncher {
     public static final Path CACHE_DIR = Paths.get(System.getProperty("user.home"), ".cleanroom", "relauncher");
 
     public static RelauncherConfiguration CONFIG = RelauncherConfiguration.read();
+
+    private static FugueRelease selectedFugue;
 
     public CleanroomRelauncher() { }
 
@@ -170,6 +174,7 @@ public class CleanroomRelauncher {
             selected = gui.selected;
             javaPath = gui.javaPath;
             javaArgs = gui.javaArgs;
+            selectedFugue = gui.selectedFugue;
 
             CONFIG.setCleanroomVersion(selected.name);
             CONFIG.setLatestCleanroomVersion(latestRelease.name);
@@ -184,6 +189,15 @@ public class CleanroomRelauncher {
         LOGGER.info("Preparing Cleanroom v{} and its libraries...", selected.name);
         List<Version> versions = versions(releaseCache);
 
+        Path fuguePath = null;
+        if (selectedFugue != null) {
+            LOGGER.info("Preparing Fugue v{}...", selectedFugue.name);
+            fuguePath = CACHE_DIR.resolve("fugue").resolve(selectedFugue.name + ".jar");
+            if (!Files.exists(fuguePath)) {
+                GlobalDownloader.INSTANCE.immediatelyFrom(selectedFugue.downloadUrl, fuguePath.toFile());
+            }
+        }
+
         String wrapperClassPath = getOrExtract();
 
         LOGGER.info("Preparing to relaunch Cleanroom v{}", selected.name);
@@ -197,6 +211,9 @@ public class CleanroomRelauncher {
                 .collect(Collectors.joining(File.pathSeparator));
 
         String fullClassPath = wrapperClassPath + File.pathSeparator + libraryClassPath;
+        if (fuguePath != null) {
+            fullClassPath += File.pathSeparator + fuguePath.toAbsolutePath().toString();
+        }
         arguments.add(fullClassPath); // Ensure this is not empty
 
 //        for (String argument : ManagementFactory.getRuntimeMXBean().getInputArguments()) {

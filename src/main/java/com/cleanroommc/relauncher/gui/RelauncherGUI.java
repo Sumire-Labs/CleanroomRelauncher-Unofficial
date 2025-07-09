@@ -6,6 +6,8 @@ import com.cleanroommc.javautils.spi.JavaLocator;
 import com.cleanroommc.platformutils.Platform;
 import com.cleanroommc.relauncher.CleanroomRelauncher;
 import com.cleanroommc.relauncher.download.CleanroomRelease;
+import com.cleanroommc.relauncher.download.FugueRelease;
+import com.cleanroommc.relauncher.download.GlobalDownloader;
 import net.minecraftforge.fml.cleanroomrelauncher.ExitVMBypass;
 
 import javax.swing.*;
@@ -21,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -149,6 +152,7 @@ public class RelauncherGUI extends JDialog {
     }
 
     public CleanroomRelease selected;
+    public FugueRelease selectedFugue;
     public String javaPath, javaArgs;
 
     private JFrame frame;
@@ -227,6 +231,9 @@ public class RelauncherGUI extends JDialog {
         JPanel cleanroomPickerPanel = this.initializeCleanroomPicker(eligibleReleases);
         mainPanel.add(cleanroomPickerPanel);
 
+        JPanel fuguePickerPanel = this.initializeFuguePicker();
+        mainPanel.add(fuguePickerPanel);
+
         JPanel javaPickerPanel = this.initializeJavaPicker();
         mainPanel.add(javaPickerPanel);
 
@@ -303,6 +310,78 @@ public class RelauncherGUI extends JDialog {
         dropdown.add(releaseBox, BorderLayout.CENTER);
 
         return cleanroomPicker;
+    }
+
+    private JPanel initializeFuguePicker() {
+        // Main Panel
+        JPanel fuguePicker = new JPanel(new BorderLayout(5, 0));
+        fuguePicker.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JPanel select = new JPanel();
+        select.setLayout(new BoxLayout(select, BoxLayout.Y_AXIS));
+        fuguePicker.add(select);
+
+        // Title label
+        JLabel title = new JLabel("Select Fugue Version (Optional):");
+        title.setAlignmentX(Component.LEFT_ALIGNMENT);
+        select.add(title);
+        select.add(Box.createRigidArea(new Dimension(0, 5)));
+
+        // Create dropdown panel
+        JPanel dropdown = new JPanel(new BorderLayout(5, 5));
+        dropdown.setAlignmentX(Component.LEFT_ALIGNMENT);
+        select.add(dropdown);
+
+        // Create the dropdown with Fugue versions
+        JComboBox<FugueRelease> fugueBox = new JComboBox<>();
+        DefaultComboBoxModel<FugueRelease> fugueModel = new DefaultComboBoxModel<>();
+        fugueBox.setModel(fugueModel);
+        fugueBox.setRenderer(new DefaultListCellRenderer() {
+            @Override
+            public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                if (value instanceof FugueRelease) {
+                    setText(((FugueRelease) value).name);
+                }
+                return this;
+            }
+        });
+        fugueBox.setSelectedItem(null); // No default selection
+        fugueBox.setMaximumRowCount(5);
+        fugueBox.addActionListener(e -> selectedFugue = (FugueRelease) fugueBox.getSelectedItem());
+        dropdown.add(fugueBox, BorderLayout.CENTER);
+
+        // Fetch Fugue releases in a background thread
+        new SwingWorker<List<FugueRelease>, Void>() {
+            @Override
+            protected List<FugueRelease> doInBackground() throws Exception {
+                return GlobalDownloader.fetchFugueReleases();
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    List<FugueRelease> releases = get();
+                    if (!releases.isEmpty()) {
+                        fugueModel.removeAllElements();
+                        fugueModel.addElement(null); // Option for no Fugue
+                        for (FugueRelease release : releases) {
+                            fugueModel.addElement(release);
+                        }
+                        fugueBox.setSelectedItem(null); // Select "no Fugue" by default
+                    } else {
+                        fugueBox.setEnabled(false); // Disable if no releases found
+                        title.setText("Select Fugue Version (Optional - No releases found)");
+                    }
+                } catch (InterruptedException | ExecutionException e) {
+                    CleanroomRelauncher.LOGGER.error("Error fetching Fugue releases for UI: " + e.getMessage(), e);
+                    fugueBox.setEnabled(false);
+                    title.setText("Select Fugue Version (Optional - Error fetching releases)");
+                }
+            }
+        }.execute();
+
+        return fuguePicker;
     }
 
     private JPanel initializeJavaPicker() {
