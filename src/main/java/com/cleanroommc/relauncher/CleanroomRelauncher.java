@@ -238,7 +238,10 @@ public class CleanroomRelauncher {
         arguments.add("com.cleanroommc.relauncher.wrapper.RelaunchMainWrapper");
 
         // Forward any extra game launch arguments
-        for (Map.Entry<String, String> launchArgument : ((Map<String, String>) Launch.blackboard.get("launchArgs")).entrySet()) {
+        Object launchArgsObj = Launch.blackboard.get("launchArgs");
+        @SuppressWarnings("unchecked")
+        Map<String, String> launchArgsMap = (Map<String, String>) launchArgsObj;
+        for (Map.Entry<String, String> launchArgument : launchArgsMap.entrySet()) {
             arguments.add(launchArgument.getKey());
             arguments.add(launchArgument.getValue());
         }

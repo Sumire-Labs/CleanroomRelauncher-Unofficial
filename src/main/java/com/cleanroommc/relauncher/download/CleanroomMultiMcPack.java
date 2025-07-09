@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.stream.Stream;
 
-@Deprecated
 public class CleanroomMultiMcPack implements CleanroomZipArtifact {
 
     public static CleanroomMultiMcPack of(String version, Path location) {
@@ -34,9 +33,9 @@ public class CleanroomMultiMcPack implements CleanroomZipArtifact {
     @Override
     public void extract(CleanroomCache cache) throws IOException {
         try (FileSystem jar = FileSystems.newFileSystem(this.location, null)) {
-            Files.copy(jar.getPath("/patches/net.minecraft.json"), cache.getMinecraftJson());
-            Files.copy(jar.getPath("/patches/net.minecraftforge.json"), cache.getForgeJson());
-            Files.copy(jar.getPath("/patches/org.lwjgl3.json"), cache.getLwjglVersionJson());
+            Files.copy(jar.getPath("/patches/net.minecraft.json"), cache.getDirectory().resolve("net.minecraft.json"));
+            Files.copy(jar.getPath("/patches/net.minecraftforge.json"), cache.getDirectory().resolve("net.minecraftforge.json"));
+            Files.copy(jar.getPath("/patches/org.lwjgl3.json"), cache.getDirectory().resolve("org.lwjgl3.json"));
             try (Stream<Path> stream = Files.walk(jar.getPath("/libraries/"))) {
                 Files.copy(stream.filter(Files::isRegularFile).findFirst().get(), cache.getUniversalJar());
             }

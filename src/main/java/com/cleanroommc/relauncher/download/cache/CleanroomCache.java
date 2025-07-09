@@ -33,10 +33,10 @@ public class CleanroomCache {
             Files.createDirectories(this.directory);
         }
 
-        Path multiMcPackZip = this.getMultiMcPackZip();
-        Path lwjglJson = this.getLwjglVersionJson();
-        Path forgeJson = this.getForgeJson();
-        Path minecraftJson = this.getMinecraftJson();
+        Path multiMcPackZip = this.directory.resolve("mmc.zip");
+        Path lwjglJson = this.directory.resolve("org.lwjgl3.json");
+        Path forgeJson = this.directory.resolve("net.minecraftforge.json");
+        Path minecraftJson = this.directory.resolve("net.minecraft.json");
 
         // Path installerJar = this.getInstallerJar();
         Path universalJar = this.getUniversalJar();
@@ -102,28 +102,12 @@ public class CleanroomCache {
         return CleanroomRelauncher.CACHE_DIR.resolve("natives/");
     }
 
+    public Path getDirectory() {
+        return this.directory;
+    }
+
     public Path getVersionJson() {
         return this.directory.resolve("version.json");
-    }
-
-    @Deprecated
-    public Path getMultiMcPackZip() {
-        return this.directory.resolve("mmc.zip");
-    }
-
-    @Deprecated
-    public Path getLwjglVersionJson() {
-        return this.directory.resolve("org.lwjgl3.json");
-    }
-
-    @Deprecated
-    public Path getForgeJson() {
-        return this.directory.resolve("net.minecraftforge.json");
-    }
-
-    @Deprecated
-    public Path getMinecraftJson() {
-        return this.directory.resolve("net.minecraft.json");
     }
 
 }
