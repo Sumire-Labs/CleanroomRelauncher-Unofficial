@@ -152,6 +152,7 @@ public class CleanroomRelauncher {
         String javaPath = CONFIG.getJavaExecutablePath();
         String javaArgs = CONFIG.getJavaArguments();
         String maxMemory = CONFIG.getMaxMemory();
+        String initialMemory = CONFIG.getInitialMemory();
         boolean needsNotifyLatest = notedLatestVersion == null || !notedLatestVersion.equals(latestRelease.name);
         if (selectedVersion != null) {
             selected = releases.stream().filter(cr -> cr.name.equals(selectedVersion)).findFirst().orElse(null);
@@ -167,17 +168,20 @@ public class CleanroomRelauncher {
             final String fJavaPath = javaPath;
             final String fJavaArgs = javaArgs;
             final String fMaxMemory = maxMemory;
+            final String fInitialMemory = initialMemory;
             RelauncherGUI gui = RelauncherGUI.show(releases, $ -> {
                 $.selected = fSelected;
                 $.javaPath = fJavaPath;
                 $.javaArgs = fJavaArgs;
                 $.maxMemory = fMaxMemory;
+                $.initialMemory = fInitialMemory;
             });
 
             selected = gui.selected;
             javaPath = gui.javaPath;
             javaArgs = gui.javaArgs;
             maxMemory = gui.maxMemory;
+            initialMemory = gui.initialMemory;
             selectedFugue = gui.selectedFugue;
 
             CONFIG.setCleanroomVersion(selected.name);
@@ -185,6 +189,7 @@ public class CleanroomRelauncher {
             CONFIG.setJavaExecutablePath(javaPath);
             CONFIG.setJavaArguments(javaArgs);
             CONFIG.setMaxMemory(maxMemory);
+            CONFIG.setInitialMemory(initialMemory);
 
             CONFIG.save();
         }
@@ -238,6 +243,10 @@ public class CleanroomRelauncher {
 
         if (maxMemory != null && !maxMemory.isEmpty()) {
             arguments.add("-Xmx" + maxMemory + "M");
+        }
+
+        if (initialMemory != null && !initialMemory.isEmpty()) {
+            arguments.add("-Xms" + initialMemory + "M");
         }
 
         arguments.add("-Dcleanroom.relauncher.parent=" + ProcessIdUtil.getProcessId());

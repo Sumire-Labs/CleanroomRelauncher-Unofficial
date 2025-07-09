@@ -153,7 +153,7 @@ public class RelauncherGUI extends JDialog {
 
     public CleanroomRelease selected;
     public FugueRelease selectedFugue;
-    public String javaPath, javaArgs, maxMemory;
+    public String javaPath, javaArgs, maxMemory, initialMemory;
 
     private JFrame frame;
     private int initialWidth;
@@ -565,18 +565,18 @@ public class RelauncherGUI extends JDialog {
         JLabel maxMemoryTitle = new JLabel("Allocate Max Memory (MB):");
         maxMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JSlider memorySlider = new JSlider(JSlider.HORIZONTAL, 1024, 8192, 2048);
-        memorySlider.setMajorTickSpacing(1024);
-        memorySlider.setMinorTickSpacing(512);
-        memorySlider.setPaintTicks(true);
-        memorySlider.setPaintLabels(true);
-        memorySlider.setSnapToTicks(true);
+        JSlider maxMemorySlider = new JSlider(JSlider.HORIZONTAL, 1024, 8192, 2048);
+        maxMemorySlider.setMajorTickSpacing(1024);
+        maxMemorySlider.setMinorTickSpacing(512);
+        maxMemorySlider.setPaintTicks(true);
+        maxMemorySlider.setPaintLabels(true);
+        maxMemorySlider.setSnapToTicks(true);
 
-        JLabel maxMemoryValueLabel = new JLabel(memorySlider.getValue() + " MB");
+        JLabel maxMemoryValueLabel = new JLabel(maxMemorySlider.getValue() + " MB");
         maxMemoryValueLabel.setHorizontalAlignment(SwingConstants.CENTER);
 
-        memorySlider.addChangeListener(e -> {
-            int value = memorySlider.getValue();
+        maxMemorySlider.addChangeListener(e -> {
+            int value = maxMemorySlider.getValue();
             maxMemoryValueLabel.setText(value + " MB");
             maxMemory = String.valueOf(value);
         });
@@ -585,18 +585,57 @@ public class RelauncherGUI extends JDialog {
             try {
                 int initialValue = Integer.parseInt(maxMemory);
                 if (initialValue >= 1024 && initialValue <= 8192) {
-                    memorySlider.setValue(initialValue);
+                    maxMemorySlider.setValue(initialValue);
                 }
             } catch (NumberFormatException ignored) {
                 // Use default if parsing fails
             }
         } else {
-            maxMemory = String.valueOf(memorySlider.getValue());
+            maxMemory = String.valueOf(maxMemorySlider.getValue());
         }
 
+        // Initial Memory (Xms)
+        JLabel initialMemoryTitle = new JLabel("Allocate Initial Memory (MB):");
+        initialMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, 4096, 512); // 256MB to 4GB, default 512MB
+        initialMemorySlider.setMajorTickSpacing(512);
+        initialMemorySlider.setMinorTickSpacing(256);
+        initialMemorySlider.setPaintTicks(true);
+        initialMemorySlider.setPaintLabels(true);
+        initialMemorySlider.setSnapToTicks(true);
+
+        JLabel initialMemoryValueLabel = new JLabel(initialMemorySlider.getValue() + " MB");
+        initialMemoryValueLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        initialMemorySlider.addChangeListener(e -> {
+            int value = initialMemorySlider.getValue();
+            initialMemoryValueLabel.setText(value + " MB");
+            initialMemory = String.valueOf(value);
+        });
+
+        if (initialMemory != null && !initialMemory.isEmpty()) {
+            try {
+                int initialValue = Integer.parseInt(initialMemory);
+                if (initialValue >= 256 && initialValue <= 4096) {
+                    initialMemorySlider.setValue(initialValue);
+                }
+            } catch (NumberFormatException ignored) {
+                // Use default if parsing fails
+            }
+        } else {
+            initialMemory = String.valueOf(initialMemorySlider.getValue());
+        }
+
+
+        // Add components to memoryPanel
         memoryPanel.add(maxMemoryTitle);
-        memoryPanel.add(memorySlider);
+        memoryPanel.add(maxMemorySlider);
         memoryPanel.add(maxMemoryValueLabel);
+        memoryPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacer
+        memoryPanel.add(initialMemoryTitle);
+        memoryPanel.add(initialMemorySlider);
+        memoryPanel.add(initialMemoryValueLabel);
 
         return memoryPanel;
     }
