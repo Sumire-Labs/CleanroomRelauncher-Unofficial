@@ -153,7 +153,7 @@ public class RelauncherGUI extends JDialog {
 
     public CleanroomRelease selected;
     public FugueRelease selectedFugue;
-    public String javaPath, javaArgs, maxMemory, initialMemory;
+    public String javaPath, javaArgs, maxMemory;
 
     private JFrame frame;
     private int initialWidth;
@@ -594,20 +594,9 @@ public class RelauncherGUI extends JDialog {
             maxMemory = String.valueOf(memorySlider.getValue());
         }
 
-        // Initial Memory (Xms)
-        JLabel initialMemoryTitle = new JLabel("Allocate Initial Memory (MB, e.g., 512M, 1G):");
-        initialMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
-        JTextField initialMemoryText = new JTextField(100);
-        initialMemoryText.setText(initialMemory);
-        listenToTextFieldUpdate(initialMemoryText, t -> initialMemory = t.getText());
-
-        // Add components to memoryPanel
         memoryPanel.add(maxMemoryTitle);
         memoryPanel.add(memorySlider);
         memoryPanel.add(maxMemoryValueLabel);
-        memoryPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacer
-        memoryPanel.add(initialMemoryTitle);
-        memoryPanel.add(initialMemoryText);
 
         return memoryPanel;
     }
