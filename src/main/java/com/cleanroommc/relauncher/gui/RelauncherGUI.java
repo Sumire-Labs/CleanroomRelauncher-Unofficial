@@ -396,7 +396,7 @@ public class RelauncherGUI extends JDialog {
         JPanel selectPanel = new JPanel(new BorderLayout(5, 5));
         selectPanel.setLayout(new BoxLayout(selectPanel, BoxLayout.Y_AXIS));
         JPanel subSelectPanel = new JPanel(new BorderLayout(5, 5));
-        JLabel title = new JLabel("Select Java Executable:");
+        JLabel title = new JLabel("Select Java Executable Path (Java 21+ required):");
         JTextField text = new JTextField(100);
         text.setText(javaPath);
         JPanel northPanel = new JPanel();
