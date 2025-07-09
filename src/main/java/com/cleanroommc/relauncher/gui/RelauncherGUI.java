@@ -280,7 +280,6 @@ public class RelauncherGUI extends JDialog {
         scaleComponent(this, scale);
 
         this.pack();
-        this.setSize(width, height);
         this.setVisible(true);
         this.setAutoRequestFocus(true);
     }
