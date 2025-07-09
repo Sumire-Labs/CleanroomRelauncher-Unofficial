@@ -152,6 +152,8 @@ public class RelauncherGUI extends JDialog {
     public String javaPath, javaArgs;
 
     private JFrame frame;
+    private int initialWidth;
+    private int initialHeight;
 
     private RelauncherGUI(SupportingFrame frame, List<CleanroomRelease> eligibleReleases, Consumer<RelauncherGUI> consumer) {
         super(frame, frame.getTitle(), true);
@@ -190,6 +192,9 @@ public class RelauncherGUI extends JDialog {
         int y = (rect.height - height) / 2;
         this.setLocation(x, y);
 
+        this.initialWidth = width;
+        this.initialHeight = height;
+
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
@@ -208,6 +213,7 @@ public class RelauncherGUI extends JDialog {
                 SwingUtilities.updateComponentTreeUI(this);
                 SwingUtilities.updateComponentTreeUI(frame); // Update the parent frame too
                 this.pack(); // Repack to adjust sizes if needed
+                this.setSize(initialWidth, initialHeight); // Reset to initial size
             } catch (UnsupportedLookAndFeelException ex) {
                 ex.printStackTrace();
             }
