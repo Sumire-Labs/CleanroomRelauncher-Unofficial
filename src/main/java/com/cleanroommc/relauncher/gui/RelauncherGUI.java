@@ -8,6 +8,7 @@ import com.cleanroommc.relauncher.CleanroomRelauncher;
 import com.cleanroommc.relauncher.download.CleanroomRelease;
 import com.cleanroommc.relauncher.download.FugueRelease;
 import com.cleanroommc.relauncher.download.GlobalDownloader;
+import com.cleanroommc.relauncher.CleanroomRelauncher;
 import net.minecraftforge.fml.cleanroomrelauncher.ExitVMBypass;
 
 import javax.swing.*;
@@ -676,6 +677,12 @@ public class RelauncherGUI extends JDialog {
                 test.run();
                 return;
             }
+            CleanroomRelauncher.CONFIG.setCleanroomVersion(selected != null ? selected.name : null);
+            CleanroomRelauncher.CONFIG.setJavaExecutablePath(javaPath);
+            CleanroomRelauncher.CONFIG.setJavaArguments(javaArgs);
+            CleanroomRelauncher.CONFIG.setMaxMemory(maxMemory);
+            CleanroomRelauncher.CONFIG.setInitialMemory(initialMemory);
+            CleanroomRelauncher.CONFIG.save();
             frame.dispose();
         });
         relaunchButtonPanel.add(relaunchButton);
