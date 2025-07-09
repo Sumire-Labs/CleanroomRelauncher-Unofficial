@@ -208,7 +208,7 @@ public class RelauncherGUI extends JDialog {
         GraphicsEnvironment env = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice screen = env.getDefaultScreenDevice();
         Rectangle rect = screen.getDefaultConfiguration().getBounds();
-        int width = rect.width * 2 / 9;
+        int width = rect.width / 3;
         int height = (int) (width / 1.25f);
         int x = (rect.width - width) / 2;
         int y = (rect.height - height) / 2;
@@ -280,6 +280,7 @@ public class RelauncherGUI extends JDialog {
         scaleComponent(this, scale);
 
         this.pack();
+        this.setSize(width, height);
         this.setVisible(true);
         this.setAutoRequestFocus(true);
     }
