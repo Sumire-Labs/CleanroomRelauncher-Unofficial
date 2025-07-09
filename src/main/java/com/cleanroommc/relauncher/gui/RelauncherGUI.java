@@ -598,7 +598,7 @@ public class RelauncherGUI extends JDialog {
         JLabel initialMemoryTitle = new JLabel("Allocate Initial Memory (MB):");
         initialMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, 8192, 512); // 256MB to 8GB, default 512MB
+        JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, 32768, 512); // 256MB to 32GB, default 512MB
         initialMemorySlider.setMajorTickSpacing(512);
         initialMemorySlider.setMinorTickSpacing(256);
         initialMemorySlider.setPaintTicks(true);
@@ -617,7 +617,7 @@ public class RelauncherGUI extends JDialog {
         if (initialMemory != null && !initialMemory.isEmpty()) {
             try {
                 int initialValue = Integer.parseInt(initialMemory);
-                if (initialValue >= 256 && initialValue <= 4096) {
+                if (initialValue >= 256 && initialValue <= 32768) {
                     initialMemorySlider.setValue(initialValue);
                 }
             } catch (NumberFormatException ignored) {
