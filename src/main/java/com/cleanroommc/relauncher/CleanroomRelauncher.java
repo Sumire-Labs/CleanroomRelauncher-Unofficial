@@ -192,7 +192,15 @@ public class CleanroomRelauncher {
         Path fuguePath = null;
         if (selectedFugue != null) {
             LOGGER.info("Preparing Fugue v{}...", selectedFugue.name);
-            fuguePath = CACHE_DIR.resolve("fugue").resolve(selectedFugue.name + ".jar");
+            Path modsDir = Paths.get(System.getProperty("user.dir"), "mods");
+            if (!Files.exists(modsDir)) {
+                try {
+                    Files.createDirectories(modsDir);
+                } catch (IOException e) {
+                    throw new RuntimeException("Failed to create mods directory: " + modsDir, e);
+                }
+            }
+            fuguePath = modsDir.resolve(selectedFugue.name + ".jar");
             if (!Files.exists(fuguePath)) {
                 GlobalDownloader.INSTANCE.immediatelyFrom(selectedFugue.downloadUrl, fuguePath.toFile());
             }
@@ -211,9 +219,6 @@ public class CleanroomRelauncher {
                 .collect(Collectors.joining(File.pathSeparator));
 
         String fullClassPath = wrapperClassPath + File.pathSeparator + libraryClassPath;
-        if (fuguePath != null) {
-            fullClassPath += File.pathSeparator + fuguePath.toAbsolutePath().toString();
-        }
         arguments.add(fullClassPath); // Ensure this is not empty
 
 //        for (String argument : ManagementFactory.getRuntimeMXBean().getInputArguments()) {
