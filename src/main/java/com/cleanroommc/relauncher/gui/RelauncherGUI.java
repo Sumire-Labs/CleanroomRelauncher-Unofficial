@@ -29,7 +29,9 @@ public class RelauncherGUI extends JDialog {
 
     static {
         try {
-            UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatLightLaf());
+            if (!java.awt.GraphicsEnvironment.isHeadless()) {
+                UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatLightLaf());
+            }
         } catch (Exception ex) {
             System.err.println("Failed to initialize LaF");
         }

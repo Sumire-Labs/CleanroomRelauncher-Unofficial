@@ -147,7 +147,7 @@ dependencies {
     }
 
     // For modern GUI
-    implementation 'com.formdev:flatlaf:3.4.1'
+    embed 'com.formdev:flatlaf:3.4.1'
 }
 
 apply from: 'gradle/scripts/dependencies.gradle'
