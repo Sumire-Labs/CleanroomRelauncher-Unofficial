@@ -42,41 +42,21 @@ public class RelauncherGUI extends JDialog {
     }
 
     private static void scaleComponent(Component component, float scale) {
-        // scaling rect
-        if (component instanceof JTextField ||
-                component instanceof JButton ||
-                component instanceof JComboBox) {
-            Dimension size = component.getPreferredSize();
-            component.setPreferredSize(new Dimension((int) (size.width * scale) + 10, (int) (size.height * scale)));
-            component.setMaximumSize(new Dimension((int) (size.width * scale) + 10, (int) (size.height * scale)));
-        } else if (component instanceof JLabel) {
-            JLabel label = (JLabel) component;
-            Icon icon = label.getIcon();
-            if (icon instanceof ImageIcon) {
-                ImageIcon imageIcon = (ImageIcon) icon;
-                Image image = imageIcon.getImage();
-                if (image != null) {
-                    Image scaledImage = image.getScaledInstance(
-                            (int) (imageIcon.getIconWidth() * scale),
-                            (int) (imageIcon.getIconHeight() * scale),
-                            Image.SCALE_SMOOTH);
-                    label.setIcon(new ImageIcon(scaledImage));
-                }
+        scaleSize(component, scale);
+        scaleFont(component, scale);
+        scalePadding(component, scale);
+
+        component.revalidate();
+        component.repaint();
+
+        if (component instanceof Container) {
+            for (Component child : ((Container) component).getComponents()) {
+                scaleComponent(child, scale);
             }
         }
+    }
 
-        // scaling font
-        if (component instanceof JLabel ||
-                component instanceof JButton ||
-                component instanceof JTextField ||
-                component instanceof JComboBox) {
-            Font font = component.getFont();
-            if (font != null) {
-                component.setFont(font.deriveFont(font.getSize() * scale));
-            }
-        }
-
-        // scaling padding
+    private static void scalePadding(Component component, float scale) {
         if (component instanceof AbstractButton) {
             AbstractButton button = (AbstractButton) component;
             Insets margin = button.getMargin();
@@ -136,13 +116,41 @@ public class RelauncherGUI extends JDialog {
                     (int) (margin.right * scale)
             ));
         }
+    }
 
-        component.revalidate();
-        component.repaint();
+    private static void scaleFont(Component component, float scale) {
+        if (component instanceof JLabel ||
+                component instanceof JButton ||
+                component instanceof JTextField ||
+                component instanceof JComboBox) {
+            Font font = component.getFont();
+            if (font != null) {
+                component.setFont(font.deriveFont(font.getSize() * scale));
+            }
+        }
+    }
 
-        if (component instanceof Container) {
-            for (Component child : ((Container) component).getComponents()) {
-                scaleComponent(child, scale);
+    private static void scaleSize(Component component, float scale) {
+        // scaling rect
+        if (component instanceof JTextField ||
+                component instanceof JButton ||
+                component instanceof JComboBox) {
+            Dimension size = component.getPreferredSize();
+            component.setPreferredSize(new Dimension((int) (size.width * scale) + 10, (int) (size.height * scale)));
+            component.setMaximumSize(new Dimension((int) (size.width * scale) + 10, (int) (size.height * scale)));
+        } else if (component instanceof JLabel) {
+            JLabel label = (JLabel) component;
+            Icon icon = label.getIcon();
+            if (icon instanceof ImageIcon) {
+                ImageIcon imageIcon = (ImageIcon) icon;
+                Image image = imageIcon.getImage();
+                if (image != null) {
+                    Image scaledImage = image.getScaledInstance(
+                            (int) (imageIcon.getIconWidth() * scale),
+                            (int) (imageIcon.getIconHeight() * scale),
+                            Image.SCALE_SMOOTH);
+                    label.setIcon(new ImageIcon(scaledImage));
+                }
             }
         }
     }
@@ -399,6 +407,7 @@ public class RelauncherGUI extends JDialog {
         JPanel subSelectPanel = new JPanel(new BorderLayout(5, 5));
         JLabel title = new JLabel("Select Java Executable Path (Java 21+ required):");
         JTextField text = new JTextField(100);
+        text.setToolTipText("Path to the Java executable (java.exe or java)");
         text.setText(javaPath);
         JPanel northPanel = new JPanel();
         northPanel.setLayout(new BorderLayout(5, 0));
@@ -449,8 +458,17 @@ public class RelauncherGUI extends JDialog {
         // JButton download = new JButton("Download");
         JButton autoDetect = new JButton("Auto-Detect");
         JButton test = new JButton("Test");
+        JButton reset = new JButton("Reset"); // New Reset button
         options.add(autoDetect);
         options.add(test);
+        options.add(reset); // Add Reset button
+
+        reset.addActionListener(e -> {
+            text.setText(""); // Clear the text field
+            javaPath = null; // Reset the javaPath variable
+            versionDropdown.setVisible(false); // Hide the version dropdown
+            versionModel.removeAllElements(); // Clear dropdown elements
+        });
 
         listenToTextFieldUpdate(text, t -> javaPath = t.getText());
 
@@ -567,6 +585,7 @@ public class RelauncherGUI extends JDialog {
         maxMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JSlider maxMemorySlider = new JSlider(JSlider.HORIZONTAL, 1024, 32768, 2048);
+        maxMemorySlider.setToolTipText("Maximum memory allocation for the game (Xmx)");
         maxMemorySlider.setMajorTickSpacing(1024);
         maxMemorySlider.setMinorTickSpacing(512);
         maxMemorySlider.setPaintTicks(true);
@@ -600,6 +619,7 @@ public class RelauncherGUI extends JDialog {
         initialMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, 32768, 512); // 256MB to 32GB, default 512MB
+        initialMemorySlider.setToolTipText("Initial memory allocation for the game (Xms)");
         initialMemorySlider.setMajorTickSpacing(512);
         initialMemorySlider.setMinorTickSpacing(256);
         initialMemorySlider.setPaintTicks(true);
@@ -638,6 +658,13 @@ public class RelauncherGUI extends JDialog {
         memoryPanel.add(initialMemorySlider);
         memoryPanel.add(initialMemoryValueLabel);
 
+        JButton resetMemory = new JButton("Reset Memory");
+        resetMemory.addActionListener(e -> {
+            maxMemorySlider.setValue(2048); // Default max memory
+            initialMemorySlider.setValue(512); // Default initial memory
+        });
+        memoryPanel.add(resetMemory); // Add Reset Memory button
+
         return memoryPanel;
     }
 
@@ -649,6 +676,7 @@ public class RelauncherGUI extends JDialog {
         JLabel title = new JLabel("Add Java Arguments:");
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         JTextField text = new JTextField(100);
+        text.setToolTipText("Additional Java arguments to pass to the game JVM");
         text.setText(javaArgs);
         listenToTextFieldUpdate(text, t -> javaArgs = t.getText());
 
