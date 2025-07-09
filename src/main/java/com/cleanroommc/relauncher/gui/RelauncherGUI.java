@@ -30,24 +30,6 @@ import java.util.stream.Collectors;
 
 public class RelauncherGUI extends JDialog {
 
-    static class TranslucentPanel extends JPanel {
-        private Color backgroundColor;
-
-        public TranslucentPanel(Color backgroundColor) {
-            this.backgroundColor = backgroundColor;
-            setOpaque(false); // Make sure the panel itself is not opaque
-        }
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            Graphics2D g2d = (Graphics2D) g.create();
-            g2d.setColor(backgroundColor);
-            g2d.fillRect(0, 0, getWidth(), getHeight());
-            g2d.dispose();
-        }
-    }
-
     static {
         try {
             if (!java.awt.GraphicsEnvironment.isHeadless()) {
@@ -171,7 +153,7 @@ public class RelauncherGUI extends JDialog {
 
     public CleanroomRelease selected;
     public FugueRelease selectedFugue;
-    public String javaPath, javaArgs;
+    public String javaPath, javaArgs, maxMemory, initialMemory;
 
     private JFrame frame;
     private int initialWidth;
@@ -217,7 +199,7 @@ public class RelauncherGUI extends JDialog {
         this.initialWidth = width;
         this.initialHeight = height;
 
-        JPanel mainPanel = new TranslucentPanel(new Color(255, 255, 255, 150)); // White with 150 alpha
+        JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
         // Theme selection
@@ -254,6 +236,9 @@ public class RelauncherGUI extends JDialog {
 
         JPanel javaPickerPanel = this.initializeJavaPicker();
         mainPanel.add(javaPickerPanel);
+
+        JPanel memoryPanel = this.initializeMemoryPanel();
+        mainPanel.add(memoryPanel);
 
         JPanel argsPanel = this.initializeArgsPanel();
         mainPanel.add(argsPanel);
@@ -417,7 +402,7 @@ public class RelauncherGUI extends JDialog {
         JPanel northPanel = new JPanel();
         northPanel.setLayout(new BorderLayout(5, 0));
         northPanel.add(title, BorderLayout.NORTH);
-        subSelectPanel.add(northPanel, BorderLayout.NORTH);
+        subSelectPanel.add(northPanel, BorderLayout.CENTER);
         subSelectPanel.add(text, BorderLayout.CENTER);
         // JButton browse = new JButton(UIManager.getIcon("FileView.directoryIcon"));
         JButton browse = new JButton("Browse");
@@ -532,12 +517,12 @@ public class RelauncherGUI extends JDialog {
             });
             timer.start();
 
-            new SwingWorker<Void, Void>() {
+            new SwingWorker<List<JavaInstall>, Void>() {
 
                 List<JavaInstall> javaInstalls = Collections.emptyList();
 
                 @Override
-                protected Void doInBackground() {
+                protected List<JavaInstall> doInBackground() {
                     this.javaInstalls = JavaLocator.locators().parallelStream()
                             .map(JavaLocator::all)
                             .flatMap(Collection::stream)
@@ -545,7 +530,7 @@ public class RelauncherGUI extends JDialog {
                             .distinct()
                             .sorted()
                             .collect(Collectors.toList());
-                    return null;
+                    return this.javaInstalls;
                 }
 
                 @Override
@@ -569,6 +554,62 @@ public class RelauncherGUI extends JDialog {
         });
 
         return javaPicker;
+    }
+
+    private JPanel initializeMemoryPanel() {
+        JPanel memoryPanel = new JPanel();
+        memoryPanel.setLayout(new BoxLayout(memoryPanel, BoxLayout.Y_AXIS)); // Use BoxLayout for vertical stacking
+        memoryPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
+
+        // Max Memory (Xmx)
+        JLabel maxMemoryTitle = new JLabel("Allocate Max Memory (MB):");
+        maxMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+
+        JSlider memorySlider = new JSlider(JSlider.HORIZONTAL, 1024, 8192, 2048);
+        memorySlider.setMajorTickSpacing(1024);
+        memorySlider.setMinorTickSpacing(512);
+        memorySlider.setPaintTicks(true);
+        memorySlider.setPaintLabels(true);
+        memorySlider.setSnapToTicks(true);
+
+        JLabel maxMemoryValueLabel = new JLabel(memorySlider.getValue() + " MB");
+        maxMemoryValueLabel.setHorizontalAlignment(SwingConstants.CENTER);
+
+        memorySlider.addChangeListener(e -> {
+            int value = memorySlider.getValue();
+            maxMemoryValueLabel.setText(value + " MB");
+            maxMemory = String.valueOf(value);
+        });
+
+        if (maxMemory != null && !maxMemory.isEmpty()) {
+            try {
+                int initialValue = Integer.parseInt(maxMemory);
+                if (initialValue >= 1024 && initialValue <= 8192) {
+                    memorySlider.setValue(initialValue);
+                }
+            } catch (NumberFormatException ignored) {
+                // Use default if parsing fails
+            }
+        } else {
+            maxMemory = String.valueOf(memorySlider.getValue());
+        }
+
+        // Initial Memory (Xms)
+        JLabel initialMemoryTitle = new JLabel("Allocate Initial Memory (MB, e.g., 512M, 1G):");
+        initialMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
+        JTextField initialMemoryText = new JTextField(100);
+        initialMemoryText.setText(initialMemory);
+        listenToTextFieldUpdate(initialMemoryText, t -> initialMemory = t.getText());
+
+        // Add components to memoryPanel
+        memoryPanel.add(maxMemoryTitle);
+        memoryPanel.add(memorySlider);
+        memoryPanel.add(maxMemoryValueLabel);
+        memoryPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacer
+        memoryPanel.add(initialMemoryTitle);
+        memoryPanel.add(initialMemoryText);
+
+        return memoryPanel;
     }
 
     private JPanel initializeArgsPanel() {

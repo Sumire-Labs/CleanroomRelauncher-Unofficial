@@ -151,6 +151,8 @@ public class CleanroomRelauncher {
         String notedLatestVersion = CONFIG.getLatestCleanroomVersion();
         String javaPath = CONFIG.getJavaExecutablePath();
         String javaArgs = CONFIG.getJavaArguments();
+        String maxMemory = CONFIG.getMaxMemory();
+        String initialMemory = CONFIG.getInitialMemory();
         boolean needsNotifyLatest = notedLatestVersion == null || !notedLatestVersion.equals(latestRelease.name);
         if (selectedVersion != null) {
             selected = releases.stream().filter(cr -> cr.name.equals(selectedVersion)).findFirst().orElse(null);
@@ -165,21 +167,29 @@ public class CleanroomRelauncher {
             final CleanroomRelease fSelected = selected;
             final String fJavaPath = javaPath;
             final String fJavaArgs = javaArgs;
+            final String fMaxMemory = maxMemory;
+            final String fInitialMemory = initialMemory;
             RelauncherGUI gui = RelauncherGUI.show(releases, $ -> {
                 $.selected = fSelected;
                 $.javaPath = fJavaPath;
                 $.javaArgs = fJavaArgs;
+                $.maxMemory = fMaxMemory;
+                $.initialMemory = fInitialMemory;
             });
 
             selected = gui.selected;
             javaPath = gui.javaPath;
             javaArgs = gui.javaArgs;
+            maxMemory = gui.maxMemory;
+            initialMemory = gui.initialMemory;
             selectedFugue = gui.selectedFugue;
 
             CONFIG.setCleanroomVersion(selected.name);
             CONFIG.setLatestCleanroomVersion(latestRelease.name);
             CONFIG.setJavaExecutablePath(javaPath);
             CONFIG.setJavaArguments(javaArgs);
+            CONFIG.setMaxMemory(maxMemory);
+            CONFIG.setInitialMemory(initialMemory);
 
             CONFIG.save();
         }
@@ -231,6 +241,14 @@ public class CleanroomRelauncher {
             Collections.addAll(arguments, javaArgs.split(" "));
         }
 
+        if (maxMemory != null && !maxMemory.isEmpty()) {
+            arguments.add("-Xmx" + maxMemory + "M");
+        }
+
+        if (initialMemory != null && !initialMemory.isEmpty()) {
+            arguments.add("-Xms" + initialMemory);
+        }
+
         arguments.add("-Dcleanroom.relauncher.parent=" + ProcessIdUtil.getProcessId());
         arguments.add("-Dcleanroom.relauncher.mainClass=" + versions.get(0).mainClass);
         arguments.add("-Djava.library.path=" + versions.stream().map(version -> version.nativesPaths).flatMap(Collection::stream).collect(Collectors.joining(File.pathSeparator)));
@@ -238,10 +256,7 @@ public class CleanroomRelauncher {
         arguments.add("com.cleanroommc.relauncher.wrapper.RelaunchMainWrapper");
 
         // Forward any extra game launch arguments
-        Object launchArgsObj = Launch.blackboard.get("launchArgs");
-        @SuppressWarnings("unchecked")
-        Map<String, String> launchArgsMap = (Map<String, String>) launchArgsObj;
-        for (Map.Entry<String, String> launchArgument : launchArgsMap.entrySet()) {
+        for (Map.Entry<String, String> launchArgument : ((Map<String, String>) Launch.blackboard.get("launchArgs")).entrySet()) {
             arguments.add(launchArgument.getKey());
             arguments.add(launchArgument.getValue());
         }
