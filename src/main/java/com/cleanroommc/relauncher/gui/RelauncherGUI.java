@@ -30,6 +30,55 @@ import java.util.stream.Collectors;
 
 public class RelauncherGUI extends JDialog {
 
+    static class TranslucentPanel extends JPanel {
+        private Color backgroundColor;
+
+        public TranslucentPanel(Color backgroundColor) {
+            this.backgroundColor = backgroundColor;
+            setOpaque(false); // Make sure the panel itself is not opaque
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            super.paintComponent(g);
+            Graphics2D g2d = (Graphics2D) g.create();
+            g2d.setColor(backgroundColor);
+            g2d.fillRect(0, 0, getWidth(), getHeight());
+            g2d.dispose();
+        }
+    }
+
+    static class RoundedButton extends JButton {
+        public RoundedButton(String text) {
+            super(text);
+            setContentAreaFilled(false); // Don't paint the default background
+            setFocusPainted(false); // Don't paint the focus border
+            setBorderPainted(false); // Don't paint the border
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+
+            // Determine color based on button state
+            if (getModel().isPressed()) {
+                g2.setColor(new Color(100, 100, 100, 200)); // Darker when pressed
+            } else if (getModel().isRollover()) {
+                g2.setColor(new Color(150, 150, 150, 200)); // Slightly darker when hovered
+            } else {
+                g2.setColor(new Color(200, 200, 200, 200)); // Default color (semi-transparent gray)
+            }
+
+            // Draw rounded rectangle
+            g2.fillRoundRect(0, 0, getWidth(), getHeight(), 15, 15); // 15 is the arc width and height
+
+            // Draw text and icon
+            super.paintComponent(g); // This will draw the text and icon
+            g2.dispose();
+        }
+    }
+
     static {
         try {
             if (!java.awt.GraphicsEnvironment.isHeadless()) {
@@ -199,7 +248,7 @@ public class RelauncherGUI extends JDialog {
         this.initialWidth = width;
         this.initialHeight = height;
 
-        JPanel mainPanel = new JPanel();
+        JPanel mainPanel = new TranslucentPanel(new Color(255, 255, 255, 150)); // White with 150 alpha
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
         // Theme selection
@@ -402,7 +451,7 @@ public class RelauncherGUI extends JDialog {
         subSelectPanel.add(northPanel, BorderLayout.NORTH);
         subSelectPanel.add(text, BorderLayout.CENTER);
         // JButton browse = new JButton(UIManager.getIcon("FileView.directoryIcon"));
-        JButton browse = new JButton("Browse");
+        JButton browse = new RoundedButton("Browse");
         subSelectPanel.add(browse, BorderLayout.EAST);
         selectPanel.add(subSelectPanel);
         javaPicker.add(selectPanel);
@@ -443,8 +492,8 @@ public class RelauncherGUI extends JDialog {
         options.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         selectPanel.add(options);
         // JButton download = new JButton("Download");
-        JButton autoDetect = new JButton("Auto-Detect");
-        JButton test = new JButton("Test");
+        JButton autoDetect = new RoundedButton("Auto-Detect");
+        JButton test = new RoundedButton("Test");
         options.add(autoDetect);
         options.add(test);
 
@@ -573,7 +622,7 @@ public class RelauncherGUI extends JDialog {
     private JPanel initializeRelaunchPanel() {
         JPanel relaunchButtonPanel = new JPanel();
 
-        JButton relaunchButton = new JButton("Relaunch with Cleanroom");
+        JButton relaunchButton = new RoundedButton("Relaunch with Cleanroom");
         relaunchButtonPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         relaunchButton.addActionListener(e -> {
             if (selected == null) {
