@@ -145,6 +145,9 @@ dependencies {
         testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
         testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     }
+
+    // For modern GUI
+    implementation 'com.formdev:flatlaf:3.4.1'
 }
 
 apply from: 'gradle/scripts/dependencies.gradle'

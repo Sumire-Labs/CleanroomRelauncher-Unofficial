@@ -29,8 +29,10 @@ public class RelauncherGUI extends JDialog {
 
     static {
         try {
-            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-        } catch (Exception ignore) { }
+            UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatLightLaf());
+        } catch (Exception ex) {
+            System.err.println("Failed to initialize LaF");
+        }
     }
 
     private static void scaleComponent(Component component, float scale) {
@@ -337,7 +339,6 @@ public class RelauncherGUI extends JDialog {
         options.add(test);
 
         listenToTextFieldUpdate(text, t -> javaPath = t.getText());
-        addTextBoxEffect(text);
 
         browse.addActionListener(e -> {
             JFileChooser fileChooser = new JFileChooser();
@@ -452,7 +453,6 @@ public class RelauncherGUI extends JDialog {
         JTextField text = new JTextField(100);
         text.setText(javaArgs);
         listenToTextFieldUpdate(text, t -> javaArgs = t.getText());
-        addTextBoxEffect(text);
 
         argsPanel.add(title, BorderLayout.NORTH);
         argsPanel.add(text, BorderLayout.CENTER);
@@ -505,18 +505,7 @@ public class RelauncherGUI extends JDialog {
         });
     }
 
-    private void addTextBoxEffect(JTextField text) {
-        text.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent e) {
-                text.setBorder(BorderFactory.createLineBorder(new Color(142, 177, 204)));
-            }
-            @Override
-            public void focusLost(FocusEvent e) {
-                text.setBorder(null);
-            }
-        });
-    }
+    
 
     private Runnable testJavaAndReturn() {
         try {
