@@ -565,7 +565,7 @@ public class RelauncherGUI extends JDialog {
         JLabel maxMemoryTitle = new JLabel("Allocate Max Memory (MB):");
         maxMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JSlider maxMemorySlider = new JSlider(JSlider.HORIZONTAL, 1024, 8192, 2048);
+        JSlider maxMemorySlider = new JSlider(JSlider.HORIZONTAL, 1024, 16384, 2048);
         maxMemorySlider.setMajorTickSpacing(1024);
         maxMemorySlider.setMinorTickSpacing(512);
         maxMemorySlider.setPaintTicks(true);
@@ -598,7 +598,7 @@ public class RelauncherGUI extends JDialog {
         JLabel initialMemoryTitle = new JLabel("Allocate Initial Memory (MB):");
         initialMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, 4096, 512); // 256MB to 4GB, default 512MB
+        JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, 8192, 512); // 256MB to 8GB, default 512MB
         initialMemorySlider.setMajorTickSpacing(512);
         initialMemorySlider.setMinorTickSpacing(256);
         initialMemorySlider.setPaintTicks(true);
