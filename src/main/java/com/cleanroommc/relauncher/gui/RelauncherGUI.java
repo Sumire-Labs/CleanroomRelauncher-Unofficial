@@ -28,6 +28,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.lang.management.ManagementFactory;
+import com.sun.management.OperatingSystemMXBean;
 
 public class RelauncherGUI extends JDialog {
 
@@ -584,22 +586,74 @@ public class RelauncherGUI extends JDialog {
         JLabel maxMemoryTitle = new JLabel("Allocate Max Memory (MB):");
         maxMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JSlider maxMemorySlider = new JSlider(JSlider.HORIZONTAL, 1024, 32768, 2048);
+        // Determine max slider value based on detected memory, or a reasonable default/cap
+        int maxSliderValue = 32768; // Default to 32GB if detection fails or for initial setup
+        try {
+            OperatingSystemMXBean osBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+            long totalPhysicalMemoryBytes = osBean.getTotalPhysicalMemorySize();
+            long detectedMemoryMB = totalPhysicalMemoryBytes / (1024 * 1024);
+            // Cap the slider max at a reasonable value, e.g., 64GB, or use detected memory if less
+            maxSliderValue = (int) Math.min(detectedMemoryMB, 65536); // Cap at 64GB
+            if (maxSliderValue < 4096) { // Ensure a minimum of 4GB for the slider max
+                maxSliderValue = 4096;
+            }
+        } catch (Exception e) {
+            CleanroomRelauncher.LOGGER.warn("Failed to detect total physical memory, using default max for slider: " + e.getMessage());
+        }
+
+        JSlider maxMemorySlider = new JSlider(JSlider.HORIZONTAL, 1024, maxSliderValue, 2048);
         maxMemorySlider.setToolTipText("Maximum memory allocation for the game (Xmx)");
-        maxMemorySlider.setMajorTickSpacing(1024);
-        maxMemorySlider.setMinorTickSpacing(512);
+        maxMemorySlider.setMajorTickSpacing(maxSliderValue / 4); // Adjust major tick spacing dynamically
+        maxMemorySlider.setMinorTickSpacing(maxSliderValue / 16); // Adjust minor tick spacing dynamically
         maxMemorySlider.setPaintTicks(true);
-        maxMemorySlider.setPaintLabels(true);
+        maxMemorySlider.setPaintLabels(false); // Disable default labels to avoid overlap
         maxMemorySlider.setSnapToTicks(true);
 
-        JLabel maxMemoryValueLabel = new JLabel(maxMemorySlider.getValue() + " MB");
-        maxMemoryValueLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        JTextField maxMemoryTextField = new JTextField(String.valueOf(maxMemorySlider.getValue()));
+        maxMemoryTextField.setColumns(5); // Adjust column width as needed
+        maxMemoryTextField.setHorizontalAlignment(SwingConstants.RIGHT);
 
         maxMemorySlider.addChangeListener(e -> {
             int value = maxMemorySlider.getValue();
-            maxMemoryValueLabel.setText(value + " MB");
+            maxMemoryTextField.setText(String.valueOf(value));
             maxMemory = String.valueOf(value);
         });
+
+        maxMemoryTextField.addActionListener(e -> {
+            try {
+                int value = Integer.parseInt(maxMemoryTextField.getText());
+                if (value >= maxMemorySlider.getMinimum() && value <= maxMemorySlider.getMaximum()) {
+                    maxMemorySlider.setValue(value);
+                } else {
+                    // Optionally, show an error or revert to previous valid value
+                    maxMemoryTextField.setText(String.valueOf(maxMemorySlider.getValue()));
+                }
+            } catch (NumberFormatException ex) {
+                // Optionally, show an error or revert to previous valid value
+                maxMemoryTextField.setText(String.valueOf(maxMemorySlider.getValue()));
+            }
+        });
+
+        maxMemoryTextField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                try {
+                    int value = Integer.parseInt(maxMemoryTextField.getText());
+                    if (value >= maxMemorySlider.getMinimum() && value <= maxMemorySlider.getMaximum()) {
+                        maxMemorySlider.setValue(value);
+                    } else {
+                        maxMemoryTextField.setText(String.valueOf(maxMemorySlider.getValue()));
+                    }
+                } catch (NumberFormatException ex) {
+                    maxMemoryTextField.setText(String.valueOf(maxMemorySlider.getValue()));
+                }
+            }
+        });
+
+        JPanel maxMemoryInputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        maxMemoryInputPanel.add(maxMemorySlider);
+        maxMemoryInputPanel.add(maxMemoryTextField);
+        maxMemoryInputPanel.add(new JLabel("MB"));
 
         if (maxMemory != null && !maxMemory.isEmpty()) {
             try {
@@ -618,22 +672,57 @@ public class RelauncherGUI extends JDialog {
         JLabel initialMemoryTitle = new JLabel("Allocate Initial Memory (MB):");
         initialMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, 32768, 512); // 256MB to 32GB, default 512MB
+        JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, maxSliderValue, 512); // Use maxSliderValue for consistency
         initialMemorySlider.setToolTipText("Initial memory allocation for the game (Xms)");
-        initialMemorySlider.setMajorTickSpacing(4096); // Increased spacing to 4GB
-        initialMemorySlider.setMinorTickSpacing(1024); // Adjusted minor spacing
+        initialMemorySlider.setMajorTickSpacing(maxSliderValue / 4); // Adjust major tick spacing dynamically
+        initialMemorySlider.setMinorTickSpacing(maxSliderValue / 16); // Adjust minor tick spacing dynamically
         initialMemorySlider.setPaintTicks(true);
-        initialMemorySlider.setPaintLabels(true);
+        initialMemorySlider.setPaintLabels(false); // Disable default labels to avoid overlap
         initialMemorySlider.setSnapToTicks(true);
 
-        JLabel initialMemoryValueLabel = new JLabel(initialMemorySlider.getValue() + " MB");
-        initialMemoryValueLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        JTextField initialMemoryTextField = new JTextField(String.valueOf(initialMemorySlider.getValue()));
+        initialMemoryTextField.setColumns(5); // Adjust column width as needed
+        initialMemoryTextField.setHorizontalAlignment(SwingConstants.RIGHT);
 
         initialMemorySlider.addChangeListener(e -> {
             int value = initialMemorySlider.getValue();
-            initialMemoryValueLabel.setText(value + " MB");
+            initialMemoryTextField.setText(String.valueOf(value));
             initialMemory = String.valueOf(value);
         });
+
+        initialMemoryTextField.addActionListener(e -> {
+            try {
+                int value = Integer.parseInt(initialMemoryTextField.getText());
+                if (value >= initialMemorySlider.getMinimum() && value <= initialMemorySlider.getMaximum()) {
+                    initialMemorySlider.setValue(value);
+                } else {
+                    initialMemoryTextField.setText(String.valueOf(initialMemorySlider.getValue()));
+                }
+            } catch (NumberFormatException ex) {
+                initialMemoryTextField.setText(String.valueOf(initialMemorySlider.getValue()));
+            }
+        });
+
+        initialMemoryTextField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                try {
+                    int value = Integer.parseInt(initialMemoryTextField.getText());
+                    if (value >= initialMemorySlider.getMinimum() && value <= initialMemorySlider.getMaximum()) {
+                        initialMemorySlider.setValue(value);
+                    } else {
+                        initialMemoryTextField.setText(String.valueOf(initialMemorySlider.getValue()));
+                    }
+                } catch (NumberFormatException ex) {
+                    initialMemoryTextField.setText(String.valueOf(initialMemorySlider.getValue()));
+                }
+            }
+        });
+
+        JPanel initialMemoryInputPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        initialMemoryInputPanel.add(initialMemorySlider);
+        initialMemoryInputPanel.add(initialMemoryTextField);
+        initialMemoryInputPanel.add(new JLabel("MB"));
 
         if (initialMemory != null && !initialMemory.isEmpty()) {
             try {
@@ -651,12 +740,10 @@ public class RelauncherGUI extends JDialog {
 
         // Add components to memoryPanel
         memoryPanel.add(maxMemoryTitle);
-        memoryPanel.add(maxMemorySlider);
-        memoryPanel.add(maxMemoryValueLabel);
+        memoryPanel.add(maxMemoryInputPanel);
         memoryPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Spacer
         memoryPanel.add(initialMemoryTitle);
-        memoryPanel.add(initialMemorySlider);
-        memoryPanel.add(initialMemoryValueLabel);
+        memoryPanel.add(initialMemoryInputPanel);
 
         JButton resetMemory = new JButton("Reset Memory");
         resetMemory.addActionListener(e -> {
