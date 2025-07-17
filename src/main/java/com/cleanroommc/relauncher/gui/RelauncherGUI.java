@@ -339,7 +339,7 @@ public class RelauncherGUI extends JDialog {
         JLabel title = new JLabel("Select Fugue Version (Optional):");
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         select.add(title);
-        select.add(Box.createRigidArea(new Dimension(0, 5));
+        select.add(Box.createRigidArea(new Dimension(0, 5)));
 
         // Create dropdown panel
         JPanel dropdown = new JPanel(new BorderLayout(5, 5));
@@ -574,6 +574,11 @@ public class RelauncherGUI extends JDialog {
                         for (JavaInstall install : javaInstalls) {
                             versionModel.addElement(install);
                         }
+                        // Select the newest Java version
+                        JavaInstall newestJava = javaInstalls.get(javaInstalls.size() - 1);
+                        versionBox.setSelectedItem(newestJava);
+                        javaPath = newestJava.executable(true).getAbsolutePath();
+                        text.setText(javaPath);
                         versionDropdown.setVisible(true);
                     }
                 }
