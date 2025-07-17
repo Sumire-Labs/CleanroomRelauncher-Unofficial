@@ -36,7 +36,7 @@ public class RelauncherGUI extends JDialog {
     static {
         try {
             if (!java.awt.GraphicsEnvironment.isHeadless()) {
-                UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatLightLaf());
+                UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatDarkLaf());
             }
         } catch (Exception ex) {
             System.err.println("Failed to initialize LaF");
@@ -213,29 +213,7 @@ public class RelauncherGUI extends JDialog {
         JPanel mainPanel = new JPanel();
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
 
-        // Theme selection
-        JPanel themePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JLabel themeLabel = new JLabel("Theme:");
-        JComboBox<String> themeComboBox = new JComboBox<>(new String[]{"Light", "Dark"});
-        themeComboBox.setSelectedItem("Light"); // Default to Light
-        themeComboBox.addActionListener(e -> {
-            try {
-                if ("Dark".equals(themeComboBox.getSelectedItem())) {
-                    UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatDarkLaf());
-                } else {
-                    UIManager.setLookAndFeel(new com.formdev.flatlaf.FlatLightLaf());
-                }
-                SwingUtilities.updateComponentTreeUI(this);
-                SwingUtilities.updateComponentTreeUI(frame); // Update the parent frame too
-                this.pack(); // Repack to adjust sizes if needed
-                this.setSize(initialWidth, initialHeight); // Reset to initial size
-            } catch (UnsupportedLookAndFeelException ex) {
-                ex.printStackTrace();
-            }
-        });
-        themePanel.add(themeLabel);
-        themePanel.add(themeComboBox);
-        mainPanel.add(themePanel);
+        
 
         JLabel cleanroomLogo = new JLabel(new ImageIcon(frame.getIconImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH)));
 
