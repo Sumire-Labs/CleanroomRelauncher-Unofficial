@@ -135,11 +135,12 @@ public class RelauncherGUI extends JDialog {
     private static void scaleSize(Component component, float scale) {
         // scaling rect
         if (component instanceof JTextField ||
-                component instanceof JButton ||
                 component instanceof JComboBox) {
             Dimension size = component.getPreferredSize();
-            component.setPreferredSize(new Dimension((int) (size.width * scale) + 10, (int) (size.height * scale)));
-            component.setMaximumSize(new Dimension((int) (size.width * scale) + 10, (int) (size.height * scale)));
+            component.setPreferredSize(new Dimension((int) (size.width * scale), (int) (size.height * scale)));
+            component.setMaximumSize(new Dimension((int) (size.width * scale), (int) (size.height * scale)));
+        } else if (component instanceof JButton) {
+            // Buttons are handled by font scaling and padding, no need for explicit size scaling here
         } else if (component instanceof JLabel) {
             JLabel label = (JLabel) component;
             Icon icon = label.getIcon();
