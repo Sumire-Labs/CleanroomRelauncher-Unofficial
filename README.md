@@ -1,11 +1,14 @@
-## Cleanroom Relauncher
+# Cleanroom Relauncher Unofficial
 
-**Supports only the major Cleanroom versions via GitHub releases at the moment.**
+A modified version of Cleanroom Relauncher for our private server.
+これは、[Cleanroom Relauncher](https://github.com/CleanroomMC/Cleanroom)を身内サーバーで便利に利用するために改造した非公式なバージョンです。
 
-**Supports client-side relaunching, server-side soon.**
+## about
 
-Relaunches a Forge 1.12.2 instance with Cleanroom Loader. Allowing modpack authors to build instances with Cleanroom in mind.
+このMODは、「Cleanroom Loader」をForgeを通じて再始動するModです。
+クライアントでの初回起動時に表示されるGUIを通じて、CleanroomのバージョンやJavaのパスなどを簡単に行うことができます。
 
-It offers a GUI when on the client, to configure various things before the first relaunch, such as java path and cleanroom versions.
+## credits
 
-Cleanroom Loader is a new loader developed from the roots of Forge Mod Loader for Minecraft 1.12.2 specifically. It boasts better performance, modern Java support, and offers better experiences for mod developers.
+* **Original Cleanroom Relauncher**: [https://github.com/CleanroomMC/Cleanroom](https://github.com/CleanroomMC/Cleanroom)
+* Dear Rongmario, please forgive me. I have forked and modified your project to play with my friends.
