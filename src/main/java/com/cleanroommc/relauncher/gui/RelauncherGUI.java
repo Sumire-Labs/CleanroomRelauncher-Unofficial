@@ -339,7 +339,7 @@ public class RelauncherGUI extends JDialog {
         JLabel title = new JLabel("Select Fugue Version (Optional):");
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         select.add(title);
-        select.add(Box.createRigidArea(new Dimension(0, 5)));
+        select.add(Box.createRigidArea(new Dimension(0, 5));
 
         // Create dropdown panel
         JPanel dropdown = new JPanel(new BorderLayout(5, 5));
@@ -365,6 +365,11 @@ public class RelauncherGUI extends JDialog {
         fugueBox.addActionListener(e -> selectedFugue = (FugueRelease) fugueBox.getSelectedItem());
         dropdown.add(fugueBox, BorderLayout.CENTER);
 
+        // Loading indicator
+        JLabel loadingLabel = new JLabel("Loading Fugue releases...");
+        loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        dropdown.add(loadingLabel, BorderLayout.SOUTH);
+
         // Fetch Fugue releases in a background thread
         new SwingWorker<List<FugueRelease>, Void>() {
             @Override
@@ -374,6 +379,7 @@ public class RelauncherGUI extends JDialog {
 
             @Override
             protected void done() {
+                dropdown.remove(loadingLabel); // Remove loading indicator
                 try {
                     List<FugueRelease> releases = get();
                     if (!releases.isEmpty()) {
@@ -392,6 +398,8 @@ public class RelauncherGUI extends JDialog {
                     fugueBox.setEnabled(false);
                     title.setText("Select Fugue Version (Optional - Error fetching releases)");
                 }
+                dropdown.revalidate();
+                dropdown.repaint();
             }
         }.execute();
 
@@ -798,6 +806,7 @@ public class RelauncherGUI extends JDialog {
             CleanroomRelauncher.CONFIG.setMaxMemory(maxMemory);
             CleanroomRelauncher.CONFIG.setInitialMemory(initialMemory);
             CleanroomRelauncher.CONFIG.save();
+            JOptionPane.showMessageDialog(this, "Settings saved successfully!", "Settings Saved", JOptionPane.INFORMATION_MESSAGE);
             frame.dispose();
         });
         relaunchButtonPanel.add(relaunchButton);
