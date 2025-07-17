@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
+import java.util.ResourceBundle;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -32,6 +33,8 @@ import java.lang.management.ManagementFactory;
 import com.sun.management.OperatingSystemMXBean;
 
 public class RelauncherGUI extends JDialog {
+
+    private final ResourceBundle resourceBundle;
 
     static {
         try {
@@ -160,7 +163,7 @@ public class RelauncherGUI extends JDialog {
 
     public static RelauncherGUI show(List<CleanroomRelease> eligibleReleases, Consumer<RelauncherGUI> consumer) {
         ImageIcon imageIcon = new ImageIcon(Toolkit.getDefaultToolkit().getImage(RelauncherGUI.class.getResource("/cleanroom-relauncher.png")));
-        return new RelauncherGUI(new SupportingFrame("Cleanroom Relaunch Configuration", imageIcon), eligibleReleases, consumer);
+        return new RelauncherGUI(new SupportingFrame(resourceBundle.getString("window.title"), imageIcon), eligibleReleases, consumer);
     }
 
     public CleanroomRelease selected;
@@ -173,6 +176,7 @@ public class RelauncherGUI extends JDialog {
 
     private RelauncherGUI(SupportingFrame frame, List<CleanroomRelease> eligibleReleases, Consumer<RelauncherGUI> consumer) {
         super(frame, frame.getTitle(), true);
+        this.resourceBundle = ResourceBundle.getBundle("messages");
         this.frame = frame;
 
         consumer.accept(this);
@@ -219,18 +223,18 @@ public class RelauncherGUI extends JDialog {
         versionSelectionPanel.setLayout(new BoxLayout(versionSelectionPanel, BoxLayout.Y_AXIS));
         versionSelectionPanel.add(this.initializeCleanroomPicker(eligibleReleases));
         versionSelectionPanel.add(this.initializeFuguePicker());
-        tabbedPane.addTab("バージョン選択", versionSelectionPanel);
+        tabbedPane.addTab(resourceBundle.getString("tab.version_selection"), versionSelectionPanel);
 
         // Java Settings Tab
         JPanel javaSettingsPanel = this.initializeJavaPicker(); // initializeJavaPicker will return a panel with its own layout
-        tabbedPane.addTab("Java設定", javaSettingsPanel);
+        tabbedPane.addTab(resourceBundle.getString("tab.java_settings"), javaSettingsPanel);
 
         // Memory and Arguments Tab
         JPanel memoryArgsPanel = new JPanel();
         memoryArgsPanel.setLayout(new BoxLayout(memoryArgsPanel, BoxLayout.Y_AXIS));
         memoryArgsPanel.add(this.initializeMemoryPanel());
         memoryArgsPanel.add(this.initializeArgsPanel());
-        tabbedPane.addTab("メモリと引数", memoryArgsPanel);
+        tabbedPane.addTab(resourceBundle.getString("tab.memory_arguments"), memoryArgsPanel);
 
         JLabel cleanroomLogo = new JLabel(new ImageIcon(frame.getIconImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH)));
         cleanroomLogo.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the logo
@@ -259,7 +263,7 @@ public class RelauncherGUI extends JDialog {
         cleanroomPicker.add(select);
 
         // Title label
-        JLabel title = new JLabel("Select Cleanroom Version:");
+        JLabel title = new JLabel(resourceBundle.getString("cleanroom.select_version"));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         select.add(title);
         select.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -304,7 +308,7 @@ public class RelauncherGUI extends JDialog {
         fuguePicker.add(select);
 
         // Title label
-        JLabel title = new JLabel("Select Fugue Version (Optional):");
+        JLabel title = new JLabel(resourceBundle.getString("fugue.select_version"));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         select.add(title);
         select.add(Box.createRigidArea(new Dimension(0, 5)));
@@ -334,7 +338,7 @@ public class RelauncherGUI extends JDialog {
         dropdown.add(fugueBox, BorderLayout.CENTER);
 
         // Loading indicator
-        JLabel loadingLabel = new JLabel("Loading Fugue releases...");
+        JLabel loadingLabel = new JLabel(resourceBundle.getString("fugue.loading"));
         loadingLabel.setHorizontalAlignment(SwingConstants.CENTER);
         dropdown.add(loadingLabel, BorderLayout.SOUTH);
 
@@ -359,12 +363,12 @@ public class RelauncherGUI extends JDialog {
                         fugueBox.setSelectedItem(null); // Select "no Fugue" by default
                     } else {
                         fugueBox.setEnabled(false); // Disable if no releases found
-                        title.setText("Select Fugue Version (Optional - No releases found)");
+                        title.setText(resourceBundle.getString("fugue.no_releases"));
                     }
                 } catch (InterruptedException | ExecutionException e) {
                     CleanroomRelauncher.LOGGER.error("Error fetching Fugue releases for UI: " + e.getMessage(), e);
                     fugueBox.setEnabled(false);
-                    title.setText("Select Fugue Version (Optional - Error fetching releases)");
+                    title.setText(resourceBundle.getString("fugue.error_fetching"));
                 }
                 dropdown.revalidate();
                 dropdown.repaint();
@@ -381,11 +385,11 @@ public class RelauncherGUI extends JDialog {
 
         // 1. Java Path Input Panel
         JPanel pathInputPanel = new JPanel(new BorderLayout(5, 5));
-        JLabel title = new JLabel("Select Java Executable Path (Java 21+ required):");
+        JLabel title = new JLabel(resourceBundle.getString("java.select_path"));
         JTextField text = new JTextField(100);
-        text.setToolTipText("Path to the Java executable (java.exe or java)");
+        text.setToolTipText(resourceBundle.getString("java.tooltip.path"));
         text.setText(javaPath);
-        JButton browse = new JButton("Browse");
+        JButton browse = new JButton(resourceBundle.getString("button.browse"));
 
         pathInputPanel.add(title, BorderLayout.NORTH);
         JPanel textAndBrowsePanel = new JPanel(new BorderLayout(5, 0));
@@ -427,9 +431,9 @@ public class RelauncherGUI extends JDialog {
         JPanel optionsPanel = new JPanel(); // Use FlowLayout by default for buttons
         optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.X_AXIS)); // Explicitly set BoxLayout for horizontal
         optionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0)); // Adjust padding
-        JButton autoDetect = new JButton("Auto-Detect");
-        JButton test = new JButton("Test");
-        JButton reset = new JButton("Reset");
+        JButton autoDetect = new JButton(resourceBundle.getString("button.auto_detect"));
+        JButton test = new JButton(resourceBundle.getString("button.test"));
+        JButton reset = new JButton(resourceBundle.getString("button.reset"));
         optionsPanel.add(autoDetect);
         optionsPanel.add(Box.createRigidArea(new Dimension(5, 0))); // Spacer
         optionsPanel.add(test);
@@ -477,15 +481,15 @@ public class RelauncherGUI extends JDialog {
         test.addActionListener(e -> {
             String javaPath = text.getText();
             if (javaPath.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "Please select a Java executable first.", "No Java Selected", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, resourceBundle.getString("message.no_java_selected"), resourceBundle.getString("message.no_java_selected"), JOptionPane.WARNING_MESSAGE);
                 return;
             }
             File javaFile = new File(javaPath);
             if (!javaFile.exists()) {
-                JOptionPane.showMessageDialog(this, "The selected Java executable does not exist.", "Invalid Java Executable Path", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, resourceBundle.getString("message.invalid_java_path"), resourceBundle.getString("message.invalid_java_path"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
-            JDialog testing = new JDialog(this, "Testing Java Executable", true);
+            JDialog testing = new JDialog(this, resourceBundle.getString("message.java_test_title"), true);
             testing.setLocationRelativeTo(this);
 
             this.testJava();
@@ -524,7 +528,7 @@ public class RelauncherGUI extends JDialog {
                 protected void done() {
                     timer.stop();
                     autoDetect.setText(original);
-                    JOptionPane.showMessageDialog(RelauncherGUI.this, javaInstalls.size() + " Java 21+ Installs Found!", "Auto-Detection Finished", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(RelauncherGUI.this, javaInstalls.size() + resourceBundle.getString("message.java_found"), resourceBundle.getString("message.auto_detect_finished"), JOptionPane.INFORMATION_MESSAGE);
                     autoDetect.setEnabled(true);
 
                     if (!javaInstalls.isEmpty()) {
@@ -565,7 +569,7 @@ public class RelauncherGUI extends JDialog {
         memoryPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
         // Max Memory (Xmx)
-        JLabel maxMemoryTitle = new JLabel("Allocate Max Memory (MB):");
+        JLabel maxMemoryTitle = new JLabel(resourceBundle.getString("memory.max_title"));
         maxMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         // Determine max slider value based on detected memory, or a reasonable default/cap
@@ -584,7 +588,7 @@ public class RelauncherGUI extends JDialog {
         }
 
         JSlider maxMemorySlider = new JSlider(JSlider.HORIZONTAL, 1024, maxSliderValue, 2048);
-        maxMemorySlider.setToolTipText("Maximum memory allocation for the game (Xmx)");
+        maxMemorySlider.setToolTipText(resourceBundle.getString("memory.tooltip.max"));
         maxMemorySlider.setMajorTickSpacing(maxSliderValue / 4); // Adjust major tick spacing dynamically
         maxMemorySlider.setMinorTickSpacing(maxSliderValue / 16); // Adjust minor tick spacing dynamically
         maxMemorySlider.setPaintTicks(true);
@@ -651,11 +655,11 @@ public class RelauncherGUI extends JDialog {
         }
 
         // Initial Memory (Xms)
-        JLabel initialMemoryTitle = new JLabel("Allocate Initial Memory (MB):");
+        JLabel initialMemoryTitle = new JLabel(resourceBundle.getString("memory.initial_title"));
         initialMemoryTitle.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         JSlider initialMemorySlider = new JSlider(JSlider.HORIZONTAL, 256, maxSliderValue, 512); // Use maxSliderValue for consistency
-        initialMemorySlider.setToolTipText("Initial memory allocation for the game (Xms)");
+        initialMemorySlider.setToolTipText(resourceBundle.getString("memory.tooltip.initial"));
         initialMemorySlider.setMajorTickSpacing(maxSliderValue / 4); // Adjust major tick spacing dynamically
         initialMemorySlider.setMinorTickSpacing(maxSliderValue / 16); // Adjust minor tick spacing dynamically
         initialMemorySlider.setPaintTicks(true);
@@ -727,7 +731,7 @@ public class RelauncherGUI extends JDialog {
         memoryPanel.add(initialMemoryTitle);
         memoryPanel.add(initialMemoryInputPanel);
 
-        JButton resetMemory = new JButton("Reset Memory");
+        JButton resetMemory = new JButton(resourceBundle.getString("button.reset_memory"));
         resetMemory.addActionListener(e -> {
             maxMemorySlider.setValue(2048); // Default max memory
             initialMemorySlider.setValue(512); // Default initial memory
@@ -742,10 +746,10 @@ public class RelauncherGUI extends JDialog {
         JPanel argsPanel = new JPanel(new BorderLayout(0, 0));
         argsPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
 
-        JLabel title = new JLabel("Add Java Arguments:");
+        JLabel title = new JLabel(resourceBundle.getString("args.title"));
         title.setAlignmentX(Component.LEFT_ALIGNMENT);
         JTextField text = new JTextField(100);
-        text.setToolTipText("Additional Java arguments to pass to the game JVM");
+        text.setToolTipText(resourceBundle.getString("args.tooltip.extra"));
         text.setText(javaArgs);
         listenToTextFieldUpdate(text, t -> javaArgs = t.getText());
 
@@ -758,15 +762,15 @@ public class RelauncherGUI extends JDialog {
     private JPanel initializeRelaunchPanel() {
         JPanel relaunchButtonPanel = new JPanel();
 
-        JButton relaunchButton = new JButton("Relaunch with Cleanroom");
+        JButton relaunchButton = new JButton(resourceBundle.getString("button.relaunch"));
         relaunchButtonPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         relaunchButton.addActionListener(e -> {
             if (selected == null) {
-                JOptionPane.showMessageDialog(this, "Please select a Cleanroom version in order to relaunch.", "Cleanroom Release Not Selected", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, resourceBundle.getString("message.cleanroom_not_selected"), resourceBundle.getString("message.cleanroom_not_selected"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
             if (javaPath == null) {
-                JOptionPane.showMessageDialog(this, "Please provide a valid Java Executable in order to relaunch.", "Java Executable Not Selected", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, resourceBundle.getString("message.java_not_selected"), resourceBundle.getString("message.java_not_selected"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
             Runnable test = this.testJavaAndReturn();
@@ -780,7 +784,7 @@ public class RelauncherGUI extends JDialog {
             CleanroomRelauncher.CONFIG.setMaxMemory(maxMemory);
             CleanroomRelauncher.CONFIG.setInitialMemory(initialMemory);
             CleanroomRelauncher.CONFIG.save();
-            JOptionPane.showMessageDialog(this, "Settings saved successfully!", "Settings Saved", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, resourceBundle.getString("message.settings_saved"), resourceBundle.getString("message.settings_saved"), JOptionPane.INFORMATION_MESSAGE);
             frame.dispose();
         });
         relaunchButtonPanel.add(relaunchButton);
@@ -814,12 +818,12 @@ public class RelauncherGUI extends JDialog {
             JavaInstall javaInstall = JavaUtils.parseInstall(javaPath);
             if (javaInstall.version().major() < 21) {
                 CleanroomRelauncher.LOGGER.fatal("Java 21+ needed, user specified Java {} instead", javaInstall.version());
-                return () -> JOptionPane.showMessageDialog(this, "Java 21 is the minimum version for Cleanroom. Currently, Java " + javaInstall.version().major() + " is selected.", "Old Java Version", JOptionPane.ERROR_MESSAGE);
+                return () -> JOptionPane.showMessageDialog(this, MessageFormat.format(resourceBundle.getString("message.java_old_version"), javaInstall.version().major()), resourceBundle.getString("message.java_old_version"), JOptionPane.ERROR_MESSAGE);
             }
             CleanroomRelauncher.LOGGER.info("Java {} specified from {}", javaInstall.version().major(), javaPath);
         } catch (IOException e) {
             CleanroomRelauncher.LOGGER.fatal("Failed to execute Java for testing", e);
-            return () -> JOptionPane.showMessageDialog(this, "Failed to test Java (more information in console): " + e.getMessage(), "Java Test Failed", JOptionPane.ERROR_MESSAGE);
+            return () -> JOptionPane.showMessageDialog(this, MessageFormat.format(resourceBundle.getString("message.java_test_failed"), e.getMessage()), resourceBundle.getString("message.java_test_failed"), JOptionPane.ERROR_MESSAGE);
         }
         return null;
     }
@@ -829,11 +833,11 @@ public class RelauncherGUI extends JDialog {
             JavaInstall javaInstall = JavaUtils.parseInstall(javaPath);
             if (javaInstall.version().major() < 21) {
                 CleanroomRelauncher.LOGGER.fatal("Java 21+ needed, user specified Java {} instead", javaInstall.version());
-                JOptionPane.showMessageDialog(this, "Java 21 is the minimum version for Cleanroom. Currently, Java " + javaInstall.version().major() + " is selected.", "Old Java Version", JOptionPane.ERROR_MESSAGE);
+                JOptionPane.showMessageDialog(this, MessageFormat.format(resourceBundle.getString("message.java_old_version"), javaInstall.version().major()), resourceBundle.getString("message.java_old_version"), JOptionPane.ERROR_MESSAGE);
                 return;
             }
             CleanroomRelauncher.LOGGER.info("Java {} specified from {}", javaInstall.version().major(), javaPath);
-            JOptionPane.showMessageDialog(this, "Java executable is working correctly!", "Java Test Successful", JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, resourceBundle.getString("message.java_test_successful"), resourceBundle.getString("message.java_test_successful"), JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
             CleanroomRelauncher.LOGGER.fatal("Failed to execute Java for testing", e);
             JOptionPane.showMessageDialog(this, "Failed to test Java (more information in console): " + e.getMessage(), "Java Test Failed", JOptionPane.ERROR_MESSAGE);
