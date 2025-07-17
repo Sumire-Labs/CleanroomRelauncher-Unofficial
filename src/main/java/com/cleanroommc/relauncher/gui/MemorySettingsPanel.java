@@ -19,6 +19,7 @@ public class MemorySettingsPanel extends JPanel {
     private JTextField initialMemoryTextField;
     private JSlider maxMemorySlider;
     private JSlider initialMemorySlider;
+    private JLabel validationIconLabel;
 
     public MemorySettingsPanel(ResourceBundle resourceBundle, String initialMaxMemory, String initialInitialMemory) {
         this.resourceBundle = resourceBundle;
@@ -114,6 +115,9 @@ public class MemorySettingsPanel extends JPanel {
         initialMemoryInputPanel.add(initialMemorySlider);
         initialMemoryInputPanel.add(initialMemoryTextField);
         initialMemoryInputPanel.add(new JLabel("MB"));
+        validationIconLabel = new JLabel("");
+        validationIconLabel.setFont(validationIconLabel.getFont().deriveFont(Font.BOLD, 16f)); // Make icon larger
+        initialMemoryInputPanel.add(validationIconLabel);
 
         if (initialInitialMemory != null && !initialInitialMemory.isEmpty()) {
             try {
@@ -241,14 +245,20 @@ public class MemorySettingsPanel extends JPanel {
             int initial = Integer.parseInt(initialMemoryTextField.getText());
 
             if (initial > max) {
-                initialMemoryTextField.setBackground(new Color(255, 200, 200)); // Light red for warning
+                initialMemoryTextField.setBackground(UIManager.getColor("TextField.background")); // Reset to default
+                validationIconLabel.setText("❌"); // Cross mark
+                validationIconLabel.setForeground(new Color(200, 0, 0)); // Dark red
                 return false;
             } else {
                 initialMemoryTextField.setBackground(UIManager.getColor("TextField.background")); // Reset to default
+                validationIconLabel.setText("✅"); // Checkmark
+                validationIconLabel.setForeground(new Color(0, 150, 0)); // Dark green
                 return true;
             }
         } catch (NumberFormatException e) {
-            initialMemoryTextField.setBackground(new Color(255, 200, 200)); // Light red for invalid format
+            initialMemoryTextField.setBackground(UIManager.getColor("TextField.background")); // Reset to default
+            validationIconLabel.setText("❌"); // Cross mark
+            validationIconLabel.setForeground(new Color(200, 0, 0)); // Dark red
             return false;
         }
     }

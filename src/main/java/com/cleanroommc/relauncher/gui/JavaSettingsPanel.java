@@ -32,6 +32,7 @@ public class JavaSettingsPanel extends JPanel {
     private JPanel versionDropdownPanel;
     private Consumer<String> javaPathConsumer;
     private BiConsumer<String, RelauncherGUI.MessageType> messageConsumer;
+    private JLabel validationIconLabel;
 
     public JavaSettingsPanel(ResourceBundle resourceBundle, String initialJavaPath, Consumer<String> javaPathConsumer, BiConsumer<String, RelauncherGUI.MessageType> messageConsumer) {
         this.resourceBundle = resourceBundle;
@@ -53,6 +54,9 @@ public class JavaSettingsPanel extends JPanel {
         textAndBrowsePanel.add(javaPathTextField, BorderLayout.CENTER);
         textAndBrowsePanel.add(browse, BorderLayout.EAST);
         pathInputPanel.add(textAndBrowsePanel, BorderLayout.CENTER);
+        validationIconLabel = new JLabel("");
+        validationIconLabel.setFont(validationIconLabel.getFont().deriveFont(Font.BOLD, 16f)); // Make icon larger
+        pathInputPanel.add(validationIconLabel, BorderLayout.EAST); // Add to the right of the text field
         add(pathInputPanel);
         add(Box.createRigidArea(new Dimension(0, 10))); // Add some vertical space
 
@@ -244,14 +248,19 @@ public class JavaSettingsPanel extends JPanel {
     private void validateJavaPath(JTextField javaPathField) {
         String path = javaPathField.getText();
         if (path == null || path.trim().isEmpty()) {
+            validationIconLabel.setText(""); // Clear icon
             javaPathField.setBackground(UIManager.getColor("TextField.background")); // Reset to default
             return;
         }
         File javaFile = new File(path);
         if (javaFile.exists() && javaFile.isFile() && javaFile.canExecute()) {
-            javaPathField.setBackground(new Color(200, 255, 200)); // Light green for valid
+            validationIconLabel.setText("✅"); // Checkmark
+            validationIconLabel.setForeground(new Color(0, 150, 0)); // Dark green
+            javaPathField.setBackground(UIManager.getColor("TextField.background")); // Reset to default
         } else {
-            javaPathField.setBackground(new Color(255, 200, 200)); // Light red for invalid
+            validationIconLabel.setText("❌"); // Cross mark
+            validationIconLabel.setForeground(new Color(200, 0, 0)); // Dark red
+            javaPathField.setBackground(UIManager.getColor("TextField.background")); // Reset to default
         }
     }
 
