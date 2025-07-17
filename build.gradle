@@ -209,6 +209,8 @@ jar {
             attribute_map['FMLAT'] = propertyString('access_transformer_locations')
         }
         attributes(attribute_map)
+        // Add Implementation-Version to the manifest
+        attribute_map['Implementation-Version'] = propertyString('mod_version')
     }
     // Add all embedded dependencies into the jar
     from(provider{ configurations.embed.collect {it.isDirectory() ? it : zipTree(it)} })

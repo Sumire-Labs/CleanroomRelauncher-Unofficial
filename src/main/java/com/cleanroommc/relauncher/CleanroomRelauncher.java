@@ -36,6 +36,21 @@ public class CleanroomRelauncher {
 
     private static FugueRelease selectedFugue;
 
+    // Add this field
+    public static String VERSION = "UNKNOWN";
+
+    static {
+        try {
+            Manifest manifest = new Manifest(CleanroomRelauncher.class.getResourceAsStream("/META-INF/MANIFEST.MF"));
+            String version = manifest.getMainAttributes().getValue("Implementation-Version");
+            if (version != null) {
+                VERSION = version;
+            }
+        } catch (Exception e) {
+            LOGGER.warn("Failed to read Implementation-Version from manifest.", e);
+        }
+    }
+
     public CleanroomRelauncher() { }
 
     private static boolean isCleanroom() {
@@ -138,6 +153,8 @@ public class CleanroomRelauncher {
             LOGGER.info("Cleanroom detected. No need to relaunch!");
             return;
         }
+
+        LOGGER.info("Starting Relauncher-CE v{}", VERSION); // Add this line
 
         replaceCerts();
 
