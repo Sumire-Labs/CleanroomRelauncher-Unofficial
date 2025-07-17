@@ -173,6 +173,7 @@ public class RelauncherGUI extends JDialog {
     private JFrame frame;
     private int initialWidth;
     private int initialHeight;
+    private JLabel statusLabel; // New status label
 
     private RelauncherGUI(SupportingFrame frame, List<CleanroomRelease> eligibleReleases, Consumer<RelauncherGUI> consumer) {
         super(frame, frame.getTitle(), true);
@@ -243,7 +244,12 @@ public class RelauncherGUI extends JDialog {
         this.setLayout(new BorderLayout());
         this.add(cleanroomLogo, BorderLayout.NORTH);
         this.add(tabbedPane, BorderLayout.CENTER);
-        this.add(this.initializeRelaunchPanel(), BorderLayout.SOUTH);
+        this.statusLabel = new JLabel("", SwingConstants.CENTER);
+        this.statusLabel.setBorder(BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        JPanel southPanel = new JPanel(new BorderLayout());
+        southPanel.add(this.initializeRelaunchPanel(), BorderLayout.NORTH);
+        southPanel.add(this.statusLabel, BorderLayout.SOUTH);
+        this.add(southPanel, BorderLayout.SOUTH);
         float scale = rect.width / 1463f;
         scaleComponent(this, scale);
 
@@ -483,12 +489,12 @@ public class RelauncherGUI extends JDialog {
         test.addActionListener(e -> {
             String javaPath = text.getText();
             if (javaPath.isEmpty()) {
-                JOptionPane.showMessageDialog(this, resourceBundle.getString("message.no_java_selected"), resourceBundle.getString("message.no_java_selected"), JOptionPane.WARNING_MESSAGE);
+                showMessage(resourceBundle.getString("message.no_java_selected"), MessageType.WARNING);
                 return;
             }
             File javaFile = new File(javaPath);
             if (!javaFile.exists()) {
-                JOptionPane.showMessageDialog(this, resourceBundle.getString("message.invalid_java_path"), resourceBundle.getString("message.invalid_java_path"), JOptionPane.ERROR_MESSAGE);
+                showMessage(resourceBundle.getString("message.invalid_java_path"), MessageType.ERROR);
                 return;
             }
             JDialog testing = new JDialog(this, resourceBundle.getString("message.java_test_title"), true);
@@ -530,7 +536,7 @@ public class RelauncherGUI extends JDialog {
                 protected void done() {
                     timer.stop();
                     autoDetect.setText(original);
-                    JOptionPane.showMessageDialog(RelauncherGUI.this, javaInstalls.size() + resourceBundle.getString("message.java_found") + (javaInstalls.isEmpty() ? "" : ":\n" + javaInstalls.stream().map(install -> install.vendor() + " " + install.version() + " (" + install.executable(true).getAbsolutePath() + ")").collect(Collectors.joining("\n"))), resourceBundle.getString("message.auto_detect_finished"), JOptionPane.INFORMATION_MESSAGE);
+                    showMessage(javaInstalls.size() + resourceBundle.getString("message.java_found") + (javaInstalls.isEmpty() ? "" : ":\n" + javaInstalls.stream().map(install -> install.vendor() + " " + install.version() + " (" + install.executable(true).getAbsolutePath() + ")").collect(Collectors.joining("\n"))), MessageType.INFO);
                     autoDetect.setEnabled(true);
 
                     if (!javaInstalls.isEmpty()) {
@@ -759,7 +765,108 @@ public class RelauncherGUI extends JDialog {
         });
         memoryPanel.add(resetMemory); // Add Reset Memory button
 
+        // Helper method for memory validation
+        Consumer<JTextField> memoryValidator = (textField) -> {
+            validateMemorySettings(maxMemoryTextField, initialMemoryTextField);
+        };
+
+        // Add listeners to trigger validation
+        maxMemorySlider.addChangeListener(e -> {
+            int value = maxMemorySlider.getValue();
+            maxMemoryTextField.setText(String.valueOf(value));
+            maxMemory = String.valueOf(value);
+            memoryValidator.accept(maxMemoryTextField); // Validate on slider change
+        });
+
+        maxMemoryTextField.addActionListener(e -> {
+            try {
+                int value = Integer.parseInt(maxMemoryTextField.getText());
+                if (value >= maxMemorySlider.getMinimum() && value <= maxMemorySlider.getMaximum()) {
+                    maxMemorySlider.setValue(value);
+                } else {
+                    maxMemoryTextField.setText(String.valueOf(maxMemorySlider.getValue()));
+                }
+            } catch (NumberFormatException ex) {
+                maxMemoryTextField.setText(String.valueOf(maxMemorySlider.getValue()));
+            }
+            memoryValidator.accept(maxMemoryTextField); // Validate on text field action
+        });
+
+        maxMemoryTextField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                try {
+                    int value = Integer.parseInt(maxMemoryTextField.getText());
+                    if (value >= maxMemorySlider.getMinimum() && value <= maxMemorySlider.getMaximum()) {
+                        maxMemorySlider.setValue(value);
+                    } else {
+                        maxMemoryTextField.setText(String.valueOf(maxMemorySlider.getValue()));
+                    }
+                } catch (NumberFormatException ex) {
+                    maxMemoryTextField.setText(String.valueOf(maxMemorySlider.getValue()));
+                }
+                memoryValidator.accept(maxMemoryTextField); // Validate on focus lost
+            }
+        });
+
+        initialMemorySlider.addChangeListener(e -> {
+            int value = initialMemorySlider.getValue();
+            initialMemoryTextField.setText(String.valueOf(value));
+            initialMemory = String.valueOf(value);
+            memoryValidator.accept(initialMemoryTextField); // Validate on slider change
+        });
+
+        initialMemoryTextField.addActionListener(e -> {
+            try {
+                int value = Integer.parseInt(initialMemoryTextField.getText());
+                if (value >= initialMemorySlider.getMinimum() && value <= initialMemorySlider.getMaximum()) {
+                    initialMemorySlider.setValue(value);
+                } else {
+                    initialMemoryTextField.setText(String.valueOf(initialMemorySlider.getValue()));
+                }
+            } catch (NumberFormatException ex) {
+                initialMemoryTextField.setText(String.valueOf(initialMemorySlider.getValue()));
+            }
+            memoryValidator.accept(initialMemoryTextField); // Validate on text field action
+        });
+
+        initialMemoryTextField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                try {
+                    int value = Integer.parseInt(initialMemoryTextField.getText());
+                    if (value >= initialMemorySlider.getMinimum() && value <= initialMemorySlider.getMaximum()) {
+                        initialMemorySlider.setValue(value);
+                    } else {
+                        initialMemoryTextField.setText(String.valueOf(initialMemorySlider.getValue()));
+                    }
+                } catch (NumberFormatException ex) {
+                    initialMemoryTextField.setText(String.valueOf(initialMemorySlider.getValue()));
+                }
+                memoryValidator.accept(initialMemoryTextField); // Validate on focus lost
+            }
+        });
+
+        // Initial validation call
+        validateMemorySettings(maxMemoryTextField, initialMemoryTextField);
+
         return memoryPanel;
+    }
+
+    private void validateMemorySettings(JTextField maxMemField, JTextField initialMemField) {
+        try {
+            int max = Integer.parseInt(maxMemField.getText());
+            int initial = Integer.parseInt(initialMemField.getText());
+
+            if (initial > max) {
+                initialMemField.setBackground(new Color(255, 200, 200)); // Light red for warning
+            } else {
+                initialMemField.setBackground(UIManager.getColor("TextField.background")); // Reset to default
+            }
+        } catch (NumberFormatException e) {
+            // If parsing fails, keep default background or handle as invalid input
+            initialMemField.setBackground(UIManager.getColor("TextField.background"));
+        }
     }
 
     private JPanel initializeArgsPanel() {
@@ -787,13 +894,27 @@ public class RelauncherGUI extends JDialog {
         relaunchButtonPanel.setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
         relaunchButton.addActionListener(e -> {
             if (selected == null) {
-                JOptionPane.showMessageDialog(this, resourceBundle.getString("message.cleanroom_not_selected"), resourceBundle.getString("message.cleanroom_not_selected"), JOptionPane.ERROR_MESSAGE);
+                showMessage(resourceBundle.getString("message.cleanroom_not_selected"), MessageType.ERROR);
                 return;
             }
             if (javaPath == null) {
-                JOptionPane.showMessageDialog(this, resourceBundle.getString("message.java_not_selected"), resourceBundle.getString("message.java_not_selected"), JOptionPane.ERROR_MESSAGE);
+                showMessage(resourceBundle.getString("message.java_not_selected"), MessageType.ERROR);
                 return;
             }
+
+            // Validate memory settings before saving
+            try {
+                int max = Integer.parseInt(maxMemory);
+                int initial = Integer.parseInt(initialMemory);
+                if (initial > max) {
+                    showMessage(resourceBundle.getString("message.initial_memory_exceeds_max"), MessageType.ERROR);
+                    return;
+                }
+            } catch (NumberFormatException e) {
+                showMessage(resourceBundle.getString("message.invalid_memory_format"), MessageType.ERROR);
+                return;
+            }
+
             Runnable test = this.testJavaAndReturn();
             if (test != null) {
                 test.run();
@@ -805,7 +926,7 @@ public class RelauncherGUI extends JDialog {
             CleanroomRelauncher.CONFIG.setMaxMemory(maxMemory);
             CleanroomRelauncher.CONFIG.setInitialMemory(initialMemory);
             CleanroomRelauncher.CONFIG.save();
-            JOptionPane.showMessageDialog(this, resourceBundle.getString("message.settings_saved"), resourceBundle.getString("message.settings_saved"), JOptionPane.INFORMATION_MESSAGE);
+            showMessage(resourceBundle.getString("message.settings_saved"), MessageType.INFO);
             frame.dispose();
         });
         relaunchButtonPanel.add(relaunchButton);
@@ -818,18 +939,35 @@ public class RelauncherGUI extends JDialog {
             @Override
             public void insertUpdate(DocumentEvent e) {
                 textConsumer.accept(text);
+                validateJavaPath(text);
             }
 
             @Override
             public void removeUpdate(DocumentEvent e) {
                 textConsumer.accept(text);
+                validateJavaPath(text);
             }
 
             @Override
             public void changedUpdate(DocumentEvent e) {
                 textConsumer.accept(text);
+                validateJavaPath(text);
             }
         });
+    }
+
+    private void validateJavaPath(JTextField javaPathField) {
+        String path = javaPathField.getText();
+        if (path == null || path.trim().isEmpty()) {
+            javaPathField.setBackground(UIManager.getColor("TextField.background")); // Reset to default
+            return;
+        }
+        File javaFile = new File(path);
+        if (javaFile.exists() && javaFile.isFile() && javaFile.canExecute()) {
+            javaPathField.setBackground(new Color(200, 255, 200)); // Light green for valid
+        } else {
+            javaPathField.setBackground(new Color(255, 200, 200)); // Light red for invalid
+        }
     }
 
     
@@ -839,12 +977,12 @@ public class RelauncherGUI extends JDialog {
             JavaInstall javaInstall = JavaUtils.parseInstall(javaPath);
             if (javaInstall.version().major() < 21) {
                 CleanroomRelauncher.LOGGER.fatal("Java 21+ needed, user specified Java {} instead", javaInstall.version());
-                return () -> JOptionPane.showMessageDialog(this, MessageFormat.format(resourceBundle.getString("message.java_old_version"), javaInstall.version().major()), resourceBundle.getString("message.java_old_version"), JOptionPane.ERROR_MESSAGE);
+                return () -> showMessage(MessageFormat.format(resourceBundle.getString("message.java_old_version"), javaInstall.version().major()), MessageType.ERROR);
             }
             CleanroomRelauncher.LOGGER.info("Java {} specified from {}", javaInstall.version().major(), javaPath);
         } catch (IOException e) {
             CleanroomRelauncher.LOGGER.fatal("Failed to execute Java for testing", e);
-            return () -> JOptionPane.showMessageDialog(this, MessageFormat.format(resourceBundle.getString("message.java_test_failed"), e.getMessage()), resourceBundle.getString("message.java_test_failed"), JOptionPane.ERROR_MESSAGE);
+            return () -> showMessage(MessageFormat.format(resourceBundle.getString("message.java_test_failed"), e.getMessage()), MessageType.ERROR);
         }
         return null;
     }
@@ -854,15 +992,39 @@ public class RelauncherGUI extends JDialog {
             JavaInstall javaInstall = JavaUtils.parseInstall(javaPath);
             if (javaInstall.version().major() < 21) {
                 CleanroomRelauncher.LOGGER.fatal("Java 21+ needed, user specified Java {} instead", javaInstall.version());
-                JOptionPane.showMessageDialog(this, MessageFormat.format(resourceBundle.getString("message.java_old_version"), javaInstall.version().major()), resourceBundle.getString("message.java_old_version"), JOptionPane.ERROR_MESSAGE);
+                showMessage(MessageFormat.format(resourceBundle.getString("message.java_old_version"), javaInstall.version().major()), MessageType.ERROR);
                 return;
             }
             CleanroomRelauncher.LOGGER.info("Java {} specified from {}", javaInstall.version().major(), javaPath);
-            JOptionPane.showMessageDialog(this, MessageFormat.format(resourceBundle.getString("message.java_test_successful_detail"), javaInstall.vendor(), javaInstall.version(), javaPath), resourceBundle.getString("message.java_test_successful"), JOptionPane.INFORMATION_MESSAGE);
+            showMessage(MessageFormat.format(resourceBundle.getString("message.java_test_successful_detail"), javaInstall.vendor(), javaInstall.version(), javaPath), MessageType.INFO);
         } catch (IOException e) {
             CleanroomRelauncher.LOGGER.fatal("Failed to execute Java for testing", e);
-            JOptionPane.showMessageDialog(this, "Failed to test Java (more information in console): " + e.getMessage(), "Java Test Failed", JOptionPane.ERROR_MESSAGE);
+            showMessage("Failed to test Java (more information in console): " + e.getMessage(), MessageType.ERROR);
         }
+    }
+
+    private void showMessage(String message, MessageType type) {
+        statusLabel.setText(message);
+        switch (type) {
+            case INFO:
+                statusLabel.setForeground(Color.BLACK);
+                break;
+            case WARNING:
+                statusLabel.setForeground(Color.ORANGE);
+                break;
+            case ERROR:
+                statusLabel.setForeground(Color.RED);
+                break;
+        }
+        // Clear message after a few seconds
+        new Timer(5000, (e) -> {
+            statusLabel.setText("");
+            statusLabel.setForeground(Color.BLACK);
+        }).start();
+    }
+
+    private enum MessageType {
+        INFO, WARNING, ERROR
     }
 
 }
