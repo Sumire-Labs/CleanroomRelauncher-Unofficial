@@ -173,32 +173,18 @@ public class CleanroomRelauncher {
 //            javaArgs = String.join(" ", ManagementFactory.getRuntimeMXBean().getInputArguments());
 //        }
         if (selected == null || javaPath == null || needsNotifyLatest) {
-            final CleanroomRelease fSelected = selected;
-            final String fJavaPath = javaPath;
-            final String fJavaArgs = javaArgs;
-            final String fMaxMemory = maxMemory;
-            final String fInitialMemory = initialMemory;
-            RelauncherGUI gui = RelauncherGUI.show(releases, $ -> {
-                $.selected = fSelected;
-                $.javaPath = fJavaPath;
-                $.javaArgs = fJavaArgs;
-                $.maxMemory = fMaxMemory;
-                $.initialMemory = fInitialMemory;
-            });
+            RelauncherGUI gui = RelauncherGUI.show(releases, javaPath, maxMemory, initialMemory);
 
             selected = gui.selected;
-            javaPath = gui.javaPath;
             javaArgs = gui.javaArgs;
-            maxMemory = gui.maxMemory;
-            initialMemory = gui.initialMemory;
             selectedFugue = gui.selectedFugue;
 
             CONFIG.setCleanroomVersion(selected.name);
             CONFIG.setLatestCleanroomVersion(latestRelease.name);
-            CONFIG.setJavaExecutablePath(javaPath);
-            CONFIG.setJavaArguments(javaArgs);
-            CONFIG.setMaxMemory(maxMemory);
-            CONFIG.setInitialMemory(initialMemory);
+            CONFIG.setJavaExecutablePath(gui.getJavaSettingsPanel().getJavaPath());
+            CONFIG.setJavaArguments(gui.javaArgs);
+            CONFIG.setMaxMemory(gui.getMemorySettingsPanel().getMaxMemory());
+            CONFIG.setInitialMemory(gui.getMemorySettingsPanel().getInitialMemory());
 
             CONFIG.save();
         }
