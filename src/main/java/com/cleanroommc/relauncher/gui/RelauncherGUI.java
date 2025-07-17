@@ -210,46 +210,35 @@ public class RelauncherGUI extends JDialog {
         this.initialWidth = width;
         this.initialHeight = height;
 
-        JPanel mainPanel = new JPanel();
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+        // Main content panel for tabs
+        JTabbedPane tabbedPane = new JTabbedPane();
 
-        
+        // Version Selection Tab
+        JPanel versionSelectionPanel = new JPanel();
+        versionSelectionPanel.setLayout(new BoxLayout(versionSelectionPanel, BoxLayout.Y_AXIS));
+        versionSelectionPanel.add(this.initializeCleanroomPicker(eligibleReleases));
+        versionSelectionPanel.add(this.initializeFuguePicker());
+        tabbedPane.addTab("バージョン選択", versionSelectionPanel);
+
+        // Java Settings Tab
+        JPanel javaSettingsPanel = this.initializeJavaPicker(); // initializeJavaPicker will return a panel with its own layout
+        tabbedPane.addTab("Java設定", javaSettingsPanel);
+
+        // Memory and Arguments Tab
+        JPanel memoryArgsPanel = new JPanel();
+        memoryArgsPanel.setLayout(new BoxLayout(memoryArgsPanel, BoxLayout.Y_AXIS));
+        memoryArgsPanel.add(this.initializeMemoryPanel());
+        memoryArgsPanel.add(this.initializeArgsPanel());
+        tabbedPane.addTab("メモリと引数", memoryArgsPanel);
 
         JLabel cleanroomLogo = new JLabel(new ImageIcon(frame.getIconImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH)));
+        cleanroomLogo.setAlignmentX(Component.CENTER_ALIGNMENT); // Center the logo
 
-        JPanel cleanroomPickerPanel = this.initializeCleanroomPicker(eligibleReleases);
-        mainPanel.add(cleanroomPickerPanel);
-
-        JPanel fuguePickerPanel = this.initializeFuguePicker();
-        mainPanel.add(fuguePickerPanel);
-
-        JPanel javaPickerPanel = this.initializeJavaPicker();
-        mainPanel.add(javaPickerPanel);
-
-        JPanel memoryPanel = this.initializeMemoryPanel();
-        mainPanel.add(memoryPanel);
-
-        JPanel argsPanel = this.initializeArgsPanel();
-        mainPanel.add(argsPanel);
-
-        JPanel contentPanel = new JPanel();
-        contentPanel.setLayout(new BorderLayout());
-        contentPanel.add(cleanroomLogo, BorderLayout.NORTH);
-        contentPanel.add(mainPanel, BorderLayout.SOUTH);
-
-        JPanel wrapper = new JPanel();
-        wrapper.setLayout(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        gbc.weightx = 1.0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        wrapper.add(contentPanel, gbc);
-
-        JPanel relaunchButtonPanel = this.initializeRelaunchPanel();
-
-        this.add(wrapper, BorderLayout.NORTH);
-        this.add(relaunchButtonPanel, BorderLayout.SOUTH);
+        // Main dialog layout
+        this.setLayout(new BorderLayout());
+        this.add(cleanroomLogo, BorderLayout.NORTH);
+        this.add(tabbedPane, BorderLayout.CENTER);
+        this.add(this.initializeRelaunchPanel(), BorderLayout.SOUTH);
         float scale = rect.width / 1463f;
         scaleComponent(this, scale);
 
