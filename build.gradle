@@ -92,6 +92,7 @@ minecraft {
     }
     extraRunJvmArguments.addAll(args)
     extraRunJvmArguments.addAll(propertyStringList('extra_jvm_args'))
+    extraRunJvmArguments.add("-Dapp.version=" + propertyString('mod_version'))
 
     if (propertyBool('use_tags')) {
         if (file('tags.properties').exists()) {
@@ -208,9 +209,9 @@ jar {
         if (propertyBool('use_access_transformer')) {
             attribute_map['FMLAT'] = propertyString('access_transformer_locations')
         }
-        attributes(attribute_map)
         // Add Implementation-Version to the manifest
         attribute_map['Implementation-Version'] = propertyString('mod_version')
+        attributes(attribute_map)
     }
     // Add all embedded dependencies into the jar
     from(provider{ configurations.embed.collect {it.isDirectory() ? it : zipTree(it)} })

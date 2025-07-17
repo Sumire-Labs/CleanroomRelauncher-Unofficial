@@ -37,18 +37,10 @@ public class CleanroomRelauncher {
     private static FugueRelease selectedFugue;
 
     // Add this field
-    public static String VERSION = "UNKNOWN";
+    public static String VERSION = System.getProperty("app.version", "UNKNOWN");
 
     static {
-        try {
-            Manifest manifest = new Manifest(CleanroomRelauncher.class.getResourceAsStream("/META-INF/MANIFEST.MF"));
-            String version = manifest.getMainAttributes().getValue("Implementation-Version");
-            if (version != null) {
-                VERSION = version;
-            }
-        } catch (Exception e) {
-            LOGGER.warn("Failed to read Implementation-Version from manifest.", e);
-        }
+        // No longer reading from manifest for dev environment
     }
 
     public CleanroomRelauncher() { }

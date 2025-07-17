@@ -407,32 +407,28 @@ public class RelauncherGUI extends JDialog {
     }
 
     private JPanel initializeJavaPicker() {
-        // Main Panel
-        JPanel javaPicker = new JPanel(new BorderLayout(5, 0));
+        JPanel javaPicker = new JPanel();
+        javaPicker.setLayout(new BoxLayout(javaPicker, BoxLayout.Y_AXIS)); // Use BoxLayout for vertical stacking
         javaPicker.setBorder(BorderFactory.createEmptyBorder(20, 10, 0, 10));
 
-        // Select Panel
-        JPanel selectPanel = new JPanel(new BorderLayout(5, 5));
-        selectPanel.setLayout(new BoxLayout(selectPanel, BoxLayout.Y_AXIS));
-        JPanel subSelectPanel = new JPanel(new BorderLayout(5, 5));
+        // 1. Java Path Input Panel
+        JPanel pathInputPanel = new JPanel(new BorderLayout(5, 5));
         JLabel title = new JLabel("Select Java Executable Path (Java 21+ required):");
         JTextField text = new JTextField(100);
         text.setToolTipText("Path to the Java executable (java.exe or java)");
         text.setText(javaPath);
-        JPanel northPanel = new JPanel();
-        northPanel.setLayout(new BorderLayout(5, 0));
-        northPanel.add(title, BorderLayout.NORTH);
-        subSelectPanel.add(northPanel, BorderLayout.CENTER);
-        subSelectPanel.add(text, BorderLayout.CENTER);
-        // JButton browse = new JButton(UIManager.getIcon("FileView.directoryIcon"));
         JButton browse = new JButton("Browse");
-        subSelectPanel.add(browse, BorderLayout.EAST);
-        selectPanel.add(subSelectPanel);
-        javaPicker.add(selectPanel);
 
-        // Java Version Dropdown
-        JPanel versionDropdown = new JPanel(new BorderLayout(5, 0));
-        versionDropdown.setAlignmentX(Component.LEFT_ALIGNMENT);
+        pathInputPanel.add(title, BorderLayout.NORTH);
+        JPanel textAndBrowsePanel = new JPanel(new BorderLayout(5, 0));
+        textAndBrowsePanel.add(text, BorderLayout.CENTER);
+        textAndBrowsePanel.add(browse, BorderLayout.EAST);
+        pathInputPanel.add(textAndBrowsePanel, BorderLayout.CENTER);
+        javaPicker.add(pathInputPanel);
+
+        // 2. Java Version Dropdown Panel
+        JPanel versionDropdownPanel = new JPanel(new BorderLayout(5, 0));
+        versionDropdownPanel.setAlignmentX(Component.LEFT_ALIGNMENT); // Align left
         JComboBox<JavaInstall> versionBox = new JComboBox<>();
         DefaultComboBoxModel<JavaInstall> versionModel = new DefaultComboBoxModel<>();
         versionBox.setModel(versionModel);
@@ -456,30 +452,24 @@ public class RelauncherGUI extends JDialog {
                 text.setText(javaPath);
             }
         });
-        versionDropdown.add(versionBox, BorderLayout.CENTER);
-        versionDropdown.setVisible(false);
-        northPanel.add(versionDropdown, BorderLayout.CENTER);
+        versionDropdownPanel.add(versionBox, BorderLayout.CENTER);
+        javaPicker.add(versionDropdownPanel); // Add to main vertical panel
 
-        // Options Panel
-        JPanel options = new JPanel(new BorderLayout(5, 0));
-        options.setLayout(new BoxLayout(options, BoxLayout.X_AXIS));
-        options.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        selectPanel.add(options);
-        // JButton download = new JButton("Download");
+        // 3. Options Panel (Auto-Detect, Test, Reset)
+        JPanel optionsPanel = new JPanel(); // Use FlowLayout by default for buttons
+        optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.X_AXIS)); // Explicitly set BoxLayout for horizontal
+        optionsPanel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0)); // Adjust padding
         JButton autoDetect = new JButton("Auto-Detect");
         JButton test = new JButton("Test");
-        JButton reset = new JButton("Reset"); // New Reset button
-        options.add(autoDetect);
-        options.add(test);
-        options.add(reset); // Add Reset button
+        JButton reset = new JButton("Reset");
+        optionsPanel.add(autoDetect);
+        optionsPanel.add(Box.createRigidArea(new Dimension(5, 0))); // Spacer
+        optionsPanel.add(test);
+        optionsPanel.add(Box.createRigidArea(new Dimension(5, 0))); // Spacer
+        optionsPanel.add(reset);
+        javaPicker.add(optionsPanel);
 
-        reset.addActionListener(e -> {
-            text.setText(""); // Clear the text field
-            javaPath = null; // Reset the javaPath variable
-            versionDropdown.setVisible(false); // Hide the version dropdown
-            versionModel.removeAllElements(); // Clear dropdown elements
-        });
-
+        // Add listeners (keep existing logic)
         listenToTextFieldUpdate(text, t -> javaPath = t.getText());
 
         browse.addActionListener(e -> {
@@ -570,6 +560,7 @@ public class RelauncherGUI extends JDialog {
                     autoDetect.setEnabled(true);
 
                     if (!javaInstalls.isEmpty()) {
+                        CleanroomRelauncher.LOGGER.info("Detected Java installs: {}", javaInstalls.stream().map(JavaInstall::version).collect(Collectors.toList()));
                         versionModel.removeAllElements();
                         for (JavaInstall install : javaInstalls) {
                             versionModel.addElement(install);
@@ -579,12 +570,22 @@ public class RelauncherGUI extends JDialog {
                         versionBox.setSelectedItem(newestJava);
                         javaPath = newestJava.executable(true).getAbsolutePath();
                         text.setText(javaPath);
-                        versionDropdown.setVisible(true);
+                        versionDropdownPanel.setVisible(true); // Use versionDropdownPanel
+                    } else {
+                        CleanroomRelauncher.LOGGER.info("No Java 21+ installs detected.");
+                        versionDropdownPanel.setVisible(false); // Use versionDropdownPanel
                     }
                 }
 
             }.execute();
 
+        });
+
+        reset.addActionListener(e -> {
+            text.setText(""); // Clear the text field
+            javaPath = null; // Reset the javaPath variable
+            versionDropdownPanel.setVisible(false); // Hide the version dropdown
+            versionModel.removeAllElements(); // Clear dropdown elements
         });
 
         return javaPicker;
