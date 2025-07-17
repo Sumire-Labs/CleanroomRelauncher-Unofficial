@@ -397,6 +397,7 @@ public class RelauncherGUI extends JDialog {
         textAndBrowsePanel.add(browse, BorderLayout.EAST);
         pathInputPanel.add(textAndBrowsePanel, BorderLayout.CENTER);
         javaPicker.add(pathInputPanel);
+        javaPicker.add(Box.createRigidArea(new Dimension(0, 10))); // Add some vertical space
 
         // 2. Java Version Dropdown Panel
         JPanel versionDropdownPanel = new JPanel(new BorderLayout(5, 0));
@@ -425,7 +426,8 @@ public class RelauncherGUI extends JDialog {
             }
         });
         versionDropdownPanel.add(versionBox, BorderLayout.CENTER);
-        javaPicker.add(versionDropdownPanel); // Add to main vertical panel
+        javaPicker.add(versionDropdownPanel);
+        javaPicker.add(Box.createRigidArea(new Dimension(0, 10))); // Add some vertical space
 
         // 3. Options Panel (Auto-Detect, Test, Reset)
         JPanel optionsPanel = new JPanel(); // Use FlowLayout by default for buttons
@@ -528,7 +530,7 @@ public class RelauncherGUI extends JDialog {
                 protected void done() {
                     timer.stop();
                     autoDetect.setText(original);
-                    JOptionPane.showMessageDialog(RelauncherGUI.this, javaInstalls.size() + resourceBundle.getString("message.java_found"), resourceBundle.getString("message.auto_detect_finished"), JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(RelauncherGUI.this, javaInstalls.size() + resourceBundle.getString("message.java_found") + (javaInstalls.isEmpty() ? "" : ":\n" + javaInstalls.stream().map(install -> install.vendor() + " " + install.version() + " (" + install.executable(true).getAbsolutePath() + ")").collect(Collectors.joining("\n"))), resourceBundle.getString("message.auto_detect_finished"), JOptionPane.INFORMATION_MESSAGE);
                     autoDetect.setEnabled(true);
 
                     if (!javaInstalls.isEmpty()) {
@@ -592,8 +594,18 @@ public class RelauncherGUI extends JDialog {
         maxMemorySlider.setMajorTickSpacing(maxSliderValue / 4); // Adjust major tick spacing dynamically
         maxMemorySlider.setMinorTickSpacing(maxSliderValue / 16); // Adjust minor tick spacing dynamically
         maxMemorySlider.setPaintTicks(true);
-        maxMemorySlider.setPaintLabels(false); // Disable default labels to avoid overlap
+        maxMemorySlider.setPaintLabels(true); // Enable default labels
         maxMemorySlider.setSnapToTicks(true);
+
+        // Create a Hashtable to store the labels
+        Hashtable<Integer, JLabel> labelTable = new Hashtable<>();
+        labelTable.put(1024, new JLabel("1GB"));
+        labelTable.put(2048, new JLabel("2GB"));
+        labelTable.put(4096, new JLabel("4GB"));
+        labelTable.put(8192, new JLabel("8GB"));
+        labelTable.put(16384, new JLabel("16GB"));
+        labelTable.put(32768, new JLabel("32GB"));
+        maxMemorySlider.setLabelTable(labelTable);
 
         JTextField maxMemoryTextField = new JTextField(String.valueOf(maxMemorySlider.getValue()));
         maxMemoryTextField.setColumns(5); // Adjust column width as needed
@@ -663,8 +675,17 @@ public class RelauncherGUI extends JDialog {
         initialMemorySlider.setMajorTickSpacing(maxSliderValue / 4); // Adjust major tick spacing dynamically
         initialMemorySlider.setMinorTickSpacing(maxSliderValue / 16); // Adjust minor tick spacing dynamically
         initialMemorySlider.setPaintTicks(true);
-        initialMemorySlider.setPaintLabels(false); // Disable default labels to avoid overlap
+        initialMemorySlider.setPaintLabels(true); // Enable default labels
         initialMemorySlider.setSnapToTicks(true);
+
+        // Create a Hashtable to store the labels
+        Hashtable<Integer, JLabel> initialLabelTable = new Hashtable<>();
+        initialLabelTable.put(256, new JLabel("256MB"));
+        initialLabelTable.put(512, new JLabel("512MB"));
+        initialLabelTable.put(1024, new JLabel("1GB"));
+        initialLabelTable.put(2048, new JLabel("2GB"));
+        initialLabelTable.put(4096, new JLabel("4GB"));
+        initialMemorySlider.setLabelTable(initialLabelTable);
 
         JTextField initialMemoryTextField = new JTextField(String.valueOf(initialMemorySlider.getValue()));
         initialMemoryTextField.setColumns(5); // Adjust column width as needed
@@ -837,7 +858,7 @@ public class RelauncherGUI extends JDialog {
                 return;
             }
             CleanroomRelauncher.LOGGER.info("Java {} specified from {}", javaInstall.version().major(), javaPath);
-            JOptionPane.showMessageDialog(this, resourceBundle.getString("message.java_test_successful"), resourceBundle.getString("message.java_test_successful"), JOptionPane.INFORMATION_MESSAGE);
+            JOptionPane.showMessageDialog(this, MessageFormat.format(resourceBundle.getString("message.java_test_successful_detail"), javaInstall.vendor(), javaInstall.version(), javaPath), resourceBundle.getString("message.java_test_successful"), JOptionPane.INFORMATION_MESSAGE);
         } catch (IOException e) {
             CleanroomRelauncher.LOGGER.fatal("Failed to execute Java for testing", e);
             JOptionPane.showMessageDialog(this, "Failed to test Java (more information in console): " + e.getMessage(), "Java Test Failed", JOptionPane.ERROR_MESSAGE);
