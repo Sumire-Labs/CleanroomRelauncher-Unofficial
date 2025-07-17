@@ -215,6 +215,11 @@ public class CleanroomRelauncher {
 
         LOGGER.info("Preparing to relaunch Cleanroom v{}", selected.name);
         List<String> arguments = new ArrayList<>();
+        if (javaPath == null || javaPath.isEmpty()) {
+            LOGGER.fatal("Java executable path is not set. Cannot launch Minecraft.");
+            ExitVMBypass.exit(1); // Exit with an error code
+            return; // Should not be reached
+        }
         arguments.add(javaPath);
 
         arguments.add("-cp");
