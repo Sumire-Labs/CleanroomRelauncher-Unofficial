@@ -1,4 +1,4 @@
-# Cleanroom Relauncher Unofficial
+# Relauncher Unofficial
 
 A modified version of Cleanroom Relauncher for our private server.
 これは、[Cleanroom Relauncher](https://github.com/CleanroomMC/Cleanroom)を身内サーバーで便利に利用するために改造した非公式なバージョンです。
